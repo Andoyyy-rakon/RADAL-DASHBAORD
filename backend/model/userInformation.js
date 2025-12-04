@@ -18,11 +18,6 @@ const userInfoModel = new mongoose.Schema({
     type: String,
     required: true
   },
-  warning_message: {
-    type: String,
-    required: true,
-    default: "Immediate rescue needed! Household is in danger."
-  },
 }, {
   timestamps: true
 });

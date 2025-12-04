@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings, icons,UsersRound} from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link,useLocation } from 'react-router-dom';
 const Sidebar = () => {
       const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+        const location = useLocation();
 
-      const [activeMenu,setActiveMenu] =useState("Dashboard")
+        const pathToLabel = {
+          '/': 'Dashboard',
+          '/acknowledge': 'Acknowledge',
+          '/manual': 'Manual',
+          '/records': 'Household Records',
+          '/settings': 'Settings',
+        };
+
+  
+        const activeMenu =pathToLabel[location.pathname];
     
       const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   return (
@@ -48,7 +58,7 @@ const Sidebar = () => {
                 { icon: Settings, label: 'Settings', to: "/settings"},
 
               ].map((item, idx) => (
-                <li key={item.label} onClick={()=>setActiveMenu(item.label)}>
+                <li key={item.label}>
                   <Link
                     to={item.to}
                     className={`flex items-center ${isSidebarOpen?"justify-start":"justify-center"}  space-x-3 p-3 rounded-lg transition-all duration-300 ${
