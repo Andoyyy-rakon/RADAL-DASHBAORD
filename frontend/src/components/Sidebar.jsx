@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings, icons,UsersRound} from 'lucide-react';
 import { Link,useLocation } from 'react-router-dom';
 const Sidebar = () => {
-      const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
         const location = useLocation();
 
         const pathToLabel = {
@@ -18,7 +18,7 @@ const Sidebar = () => {
     
       const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   return (
-        <aside className={`bg-neutral-900 shadow-lg min-h-screen  transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col `}>
+        <aside className={`bg-neutral-900 shadow-lg min-h-full fixed z-50 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col `}>
           <div className="p-6 border-b border-gray-600">
             <div className="flex items-center justify-between ">
               <div className={`flex items-center space-x-3 relative ${!isSidebarOpen?"right-1":""} `}>

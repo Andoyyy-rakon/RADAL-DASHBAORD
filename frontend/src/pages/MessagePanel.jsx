@@ -11,7 +11,7 @@ const MessagePanel = () => {
   
 
   return (
-    <div className='w-1/2 min-h-screen bg-orange-50'>
+    <div className='w-1/2 min-h-screen pl-7 bg-orange-50'>
         <div className='pl-7 pt-3'>
             <h1 className='text-3xl font-bold text-orange-700'>Dashboard</h1>
                 <div className="flex  gap-4 mt-5">

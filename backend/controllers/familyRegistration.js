@@ -24,7 +24,7 @@ const register =async(req,res)=>{
         if(createFamilyinfo){
             res.status(201).json({
                 success:true,
-                message:"Family information successfully register"
+                message:"Successfully register"
             })
         }else{
             res.status(400).json({
