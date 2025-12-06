@@ -2,7 +2,7 @@ import React from 'react'
 import {MessageSquareText,MapPinned,PcCase,Send} from 'lucide-react'
 const messages = ({device_id,family_info,warning_message,gnss,location,time,quantity}) => {
   return (
-        <div className='flex gap-3 p-5 items-center '>
+        <div className='flex  gap-3 p-5 items-center'>
             <div className='max-w-md border-b-2 border-b-gray-800 p-2 space-y-3'>
                 <div className='flex gap-2 items-center'>
                     <PcCase className='text-orange-700' size={17}/>

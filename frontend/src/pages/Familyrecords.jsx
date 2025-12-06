@@ -3,7 +3,7 @@ import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, Chevr
 import { useState } from 'react';
 import { useEffect } from 'react';
 import api from '../axios/AxiosApiFormat';
-
+import Familyinfo from './Familyinfo';
 
 
 
@@ -16,6 +16,7 @@ const Familyrecords = () => {
 
   const [message,setmessage] =useState("");
   const [showSuccess,setShowSuccess]=useState(false)
+
 
   const [records,setrecords]=useState([{
   device_id:"",
@@ -197,16 +198,8 @@ const Familyrecords = () => {
         {!toggle &&<div className='h-full flex-1 mx-auto pt-10'>
           <div className='grid grid-cols-2 gap-x-12 gap-y-12 '>
             {data.map(item=>(
-              <div key={item.device_id} className='bg-white relative   border-2 border-transparent shadow-xl p-8 rounded-2xl  hover:border-2 hover:border-orange-500 transition-all duration-300'>
-                <div className='flex justify-end text-orange-500 absolute top-3 right-5'>
-                    <User/>
-                </div>
-                <div className='space-y-1'>
-                  <p className='flex'><span className='mr-1 text-orange-500'><PcCase/></span><span className='font-medium'>Device Id:</span> {item.device_id}</p>
-                  <p className='ml-7'><span className='font-medium'>Family name:</span> {item.family_name}</p>
-                  <p className='ml-7' ><span className='font-medium'>Members:</span> {item.quantity}</p>
-                  <p className='ml-7'><span className='font-medium'>location:</span> {item.location}</p>
-                </div>
+              <div className='pt-12 relative transition-all duration-300' key={item.device_id}>
+                <Familyinfo {...item}/>
               </div>
             ))}
             </div>

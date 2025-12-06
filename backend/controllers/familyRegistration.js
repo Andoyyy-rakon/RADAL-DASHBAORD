@@ -43,7 +43,7 @@ const register =async(req,res)=>{
 
 const getAllInfo=async(req,res)=>{
     try{
-        const data =await userInfo.find({});
+        const data =await userInfo.find({}).sort({ createdAt: -1 });
         if(data?.length>0){
             res.status(200).json({
                 success:true,

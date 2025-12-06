@@ -5,7 +5,6 @@ const Dashboard = () => {
   return (
     <div className='flex-1 pl-[70px] flex '>
         <MessagePanel/>
-        <Maps/>
     </div>
   )
 }
