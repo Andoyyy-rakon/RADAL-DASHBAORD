@@ -19,12 +19,18 @@ const register =async(req,res)=>{
             location,
         })
 
-        await createFamilyinfo.save()
+        await createFamilyinfo.save();
+
+
+        const io = req.app.get("io");
+        io.emit("new_record", createFamilyinfo);
+
 
         if(createFamilyinfo){
             res.status(201).json({
                 success:true,
-                message:"Successfully register"
+                message:"Successfully register",
+                data:createFamilyinfo
             })
         }else{
             res.status(400).json({

@@ -1,0 +1,26 @@
+{
+  "name": "radal-dashboard",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently -n FRONTEND,BACKEND -c blue,green \"npm run frontend\" \"npm run backend\"",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andoyyy-rakon/RADAL-DASHBAORD.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Andoyyy-rakon/RADAL-DASHBAORD/issues"
+  },
+  "homepage": "https://github.com/Andoyyy-rakon/RADAL-DASHBAORD#readme",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -1,29 +1,28 @@
-import React from 'react'
+
 import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import api from '../axios/AxiosApiFormat';
 import Familyinfo from './Familyinfo';
-
+import io from "socket.io-client";
 
 
 
 const Familyrecords = () => {
 
   
-
   const [data,setdata]=useState([]);
 
   const [message,setmessage] =useState("");
   const [showSuccess,setShowSuccess]=useState(false)
 
 
-  const [records,setrecords]=useState([{
+  const [records,setrecords]=useState({
   device_id:"",
   family_name:"",
   quantity:"",
   location:""
-}])
+})
   const [toggle,settoggle] = useState(false)
 
  const getAllInfo = async()=>{
@@ -33,9 +32,24 @@ const Familyrecords = () => {
  }
 
 
- useEffect(()=>{
-   getAllInfo()
- },[])
+useEffect(() => {
+  // Fetch existing records
+  getAllInfo();
+
+  // Setup Socket.IO for real-time updates
+  const socket = io("http://localhost:3000");
+  socket.on("new_record", (newData) => {
+    setdata(prev => [newData, ...prev]); // prepend new record
+  });
+
+  // Cleanup on unmount
+  return () => {
+    socket.disconnect();
+  };
+}, []);
+
+
+
 
 
 
@@ -63,7 +77,7 @@ const Familyrecords = () => {
       setTimeout(()=>{
         setShowSuccess(false);
         settoggle(false);
-      },5000);
+      },2000);
     }
 
 
@@ -81,8 +95,6 @@ const Familyrecords = () => {
 
   return (
 
-
-    
     <div className='flex flex-col flex-1 pl-[90px]  bg-orange-50 px-5'>
         <nav className='flex   justify-between items-center py-6 px-7'>
             <h1  className='text-2xl font-bold text-orange-700'>Household Records</h1>
