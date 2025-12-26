@@ -1,4 +1,5 @@
 const userInfo = require("../model/userInformation")
+const Events = require("../model/datamodel")
 
 const register =async(req,res)=>{
     try{
@@ -57,19 +58,107 @@ const getAllInfo=async(req,res)=>{
             })
         }else{
             res.status(404).json({
-                succes:false,
+                success:false,
                 message:"Empty List"
             })
         }
     }catch(error){
         res.status(500).json({
-            succes:false,
+            success:false,
             message:"Something went wrong! Please try again"
         })
     }
 }
 
+
+    const updateInfo = async(req,res)=>{
+        try{
+            const {id} = req.params;
+            const updates = req.body;
+            console.log(updates)
+            console.log(id)
+            
+            const updated = await userInfo.findByIdAndUpdate(id,updates,{new:true});
+            console.log(id)
+            console.log("Update")
+            console.log(updated)
+            if(!updated){
+                console.log("error")
+                return res.status(404).json({success:false,message:"Record not found"})
+            }  
+          
+            const io = req.app.get("io");
+            io.emit("record_updated",updated)
+            console.log(updated._id.toString())
+
+            res.json({success:true,data:updated});
+
+            console.log("Successfully Update")
+
+        }catch(error){
+            console.log(error)
+            res.status(500).json({
+                success:false,
+                message:"Update Fialed"
+            })
+        }
+
+}
+
+
+const dataReceive = async (req, res) => {
+  try {
+    const { type, handheld_id, tower_id, lat, lon, status, status_str, msg_id,response } = req.body;
+
+    const event = await Events.findOneAndUpdate(
+      { handheld_id, tower_id }, 
+      { type, lat, lon, status, status_str, msg_id,response}, 
+      { new: true, upsert: true }
+    );
+
+    const io = req.app.get("io");
+    io.emit("event_update", event); 
+
+    res.status(200).json({ success: true, event });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+const getdataReceive = async(req,res)=>{
+    try{
+        const data = await Events.find({}).sort({createdAt:-1})
+        
+        if(data?.length>0){
+            res.status(200).json({
+                success:true,
+                data
+            })
+        }
+        else{
+            res.status(404).json({
+                success:false,
+                message:"Empty List"
+            })
+        }
+    }catch(error){
+        console.log(error)
+        res.status(500).json({
+            success:false,
+            message:error
+        })
+        
+    }
+}
+
+
+
 module.exports ={
     register,
-    getAllInfo
+    getAllInfo,
+    updateInfo,
+    dataReceive,
+    getdataReceive
 }

@@ -1,15 +1,75 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {Mail, User} from 'lucide-react';
-import Messages from '../components/messages';
+import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
 import { useContext } from 'react';
 import { assets } from '../assets/asset';
+import api from '../axios/AxiosApiFormat';
 
 
 const MessagePanel = () => {
 
-  const {reports,setReports} = useContext(UserContext);
-  
+    const [reports,setreports]=useState([]);
+    const [familyinfo,setfamilyinfo]=useState([])
+    
+
+
+    
+    
+useEffect(() => {
+  const getAllInfo = async () => {
+    try {
+      const res = await api.get('/users/getAllinfo');
+      setfamilyinfo(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  getAllInfo();
+}, []);
+
+
+useEffect(() => {
+  if (!familyinfo.length) return; 
+
+  const getFriendlyStatus = (status_str) => {
+    switch (status_str.toLowerCase()) {
+      case 'danger':
+        return 'We are at risk! Need help ASAP';
+      case 'needfood':
+        return 'Need food / water / medical supplies';
+      case 'safe':
+        return 'Safe';
+      default:
+        return status_str;
+    }
+  };
+
+  const fetchAllert = async () => {
+    try {
+      const res = await api.get('users/events');
+      const merged = res.data.data.map(event => {
+        const familydata = familyinfo.find(f => f.device_id == event.handheld_id);
+        return {
+          ...event,
+          family_info: familydata?.family_name || 'Unknown',
+          quantity: familydata?.quantity || 0,
+          location: familydata?.location || '',
+          warning_message: getFriendlyStatus(event.status_str)
+        };
+      });
+
+      setreports(merged);
+      console.log(merged);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  fetchAllert();
+}, [familyinfo]);
+
 
   return (
     <div className='flex-1 min-h-screen pl-7 bg-orange-50'>
@@ -41,14 +101,14 @@ const MessagePanel = () => {
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px] grid items-center justify-items-center pt-5  grid-cols-2 gap-y-10 rounded-xl mt-8 shadow-2xl'>
+                {/* <div className='max-w-full bg-white min-h-[500px] grid items-center justify-items-center pt-5  grid-cols-2 gap-y-10 rounded-xl mt-8 shadow-2xl'>
                     {reports.map(data=>(
                         <div key={data.id}>
-                            <Messages {...data}/>
+                            <Messages {...data} />
                         </div>
                         
                     ))}
-                </div>
+                </div> */}
                 
         </div>
 

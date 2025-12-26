@@ -1,4 +1,4 @@
-import React from 'react'
+
 import {MessageSquareText,MapPinned,PcCase,Send} from 'lucide-react'
 const messages = ({device_id,family_info,warning_message,gnss,location,time,quantity}) => {
   return (
