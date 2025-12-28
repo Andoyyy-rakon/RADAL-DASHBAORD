@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState,} from 'react'
 import {Mail, User} from 'lucide-react';
 import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
 import { useContext } from 'react';
 import { assets } from '../assets/asset';
+import io from "socket.io-client";
 import api from '../axios/AxiosApiFormat';
 
 
@@ -12,7 +13,12 @@ const MessagePanel = () => {
     const [reports,setreports]=useState([]);
     const [familyinfo,setfamilyinfo]=useState([])
     
+    const familyRef = React.useRef([]);
 
+
+useEffect(() => {
+  familyRef.current = familyinfo;
+}, [familyinfo]);
 
     
     
@@ -29,9 +35,6 @@ useEffect(() => {
 }, []);
 
 
-useEffect(() => {
-  if (!familyinfo.length) return; 
-
   const getFriendlyStatus = (status_str) => {
     switch (status_str.toLowerCase()) {
       case 'danger':
@@ -45,6 +48,11 @@ useEffect(() => {
     }
   };
 
+useEffect(() => {
+  if (!familyinfo.length) return; 
+
+
+
   const fetchAllert = async () => {
     try {
       const res = await api.get('users/events');
@@ -52,6 +60,7 @@ useEffect(() => {
         const familydata = familyinfo.find(f => f.device_id == event.handheld_id);
         return {
           ...event,
+          device_id:familydata?.device_id||0,
           family_info: familydata?.family_name || 'Unknown',
           quantity: familydata?.quantity || 0,
           location: familydata?.location || '',
@@ -60,7 +69,6 @@ useEffect(() => {
       });
 
       setreports(merged);
-      console.log(merged);
 
     } catch (error) {
       console.log(error);
@@ -70,6 +78,48 @@ useEffect(() => {
   fetchAllert();
 }, [familyinfo]);
 
+
+useEffect(()=>{
+
+  const socket = io("http://localhost:3000");
+
+  socket.on("event_update",(event)=>{
+    const fam = familyRef.current.find(f=>f.device_id==event.handheld_id);
+
+
+  const mergedReport={
+        ...event,
+          device_id:fam?.device_id||0,
+          family_info: fam?.family_name || 'Unknown',
+          quantity: fam?.quantity || 0,
+          location: fam?.location || '',
+          warning_message: getFriendlyStatus(event.status_str)
+
+  };
+
+  setreports(prev=>{
+    const index = prev.findIndex(r=>r.handheld_id==mergedReport.handheld_id);
+
+    if(index!=-1){
+      const updated = [...prev];
+      updated[index]=mergedReport;
+      return updated;
+    }
+
+    return [mergedReport,...prev];
+
+  });
+
+});
+
+  return () => {
+      socket.disconnect();
+    };
+
+},[])
+
+
+console.log(reports)
 
   return (
     <div className='flex-1 min-h-screen pl-7 bg-orange-50'>

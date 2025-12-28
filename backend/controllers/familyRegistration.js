@@ -108,11 +108,11 @@ const getAllInfo=async(req,res)=>{
 
 const dataReceive = async (req, res) => {
   try {
-    const { type, handheld_id, tower_id, lat, lon, status, status_str, msg_id,response } = req.body;
+    const { latency_ms,type,type_str, handheld_id, tower_id, lat, lon, status, status_str, msg_id,response_code,response_bool } = req.body;
 
     const event = await Events.findOneAndUpdate(
       { handheld_id, tower_id }, 
-      { type, lat, lon, status, status_str, msg_id,response}, 
+      { latency_ms,type,type_str, lat, lon, status, status_str, msg_id,response_code,response_bool}, 
       { new: true, upsert: true }
     );
 
