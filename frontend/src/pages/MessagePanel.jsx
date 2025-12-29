@@ -151,14 +151,14 @@ console.log(reports)
                         
                 </div>
 
-                {/* <div className='max-w-full bg-white min-h-[500px] grid items-center justify-items-center pt-5  grid-cols-2 gap-y-10 rounded-xl mt-8 shadow-2xl'>
+                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 sm:grid-cols-1  grid-cols-2  gap-y-10  rounded-xl mt-8 shadow-2xl'>
                     {reports.map(data=>(
                         <div key={data.id}>
                             <Messages {...data} />
                         </div>
                         
                     ))}
-                </div> */}
+                </div>
                 
         </div>
 

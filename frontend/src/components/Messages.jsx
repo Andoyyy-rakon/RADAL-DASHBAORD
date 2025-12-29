@@ -2,7 +2,7 @@
 import {MessageSquareText,MapPinned,PcCase,Send} from 'lucide-react'
 const messages = ({device_id,family_info,warning_message,gnss,location,time,quantity}) => {
   return (
-        <div className='flex  gap-3 p-5 items-center'>
+        <div className='flex gap-3 p-5 items-center'>
             <div className='max-w-md border-b-2 border-b-gray-800 p-2 space-y-3'>
                 <div className='flex gap-2 items-center'>
                     <PcCase className='text-orange-700' size={17}/>
@@ -10,7 +10,7 @@ const messages = ({device_id,family_info,warning_message,gnss,location,time,quan
                 </div>
                 <div className='flex gap-2 '>
                     <MessageSquareText className='text-orange-700 '/>
-                    <div className='bg-gray-100 p-2 rounded-lg space-y-2'>
+                    <div className='bg-gray-100 p-2 rounded-lg min-w-[400px] min-h-[1] space-y-2'>
                         <div className='flex justify-between'>
                             <h1 className='font-medium text-sm'>{family_info} family, <span className='text-orange-500 text-lg font-bold'>{quantity}</span> members</h1>
 
@@ -69,7 +69,7 @@ const messages = ({device_id,family_info,warning_message,gnss,location,time,quan
                 
                 <div className='flex gap-2 pt-3 justify-end'> 
                 <MapPinned className='text-orange-700' size={22}/>
-                <p className='text-sm font-semibold mt-1'>Coordinates: {gnss}</p>
+                <p className='text-sm font-semibold mt-1'>Coordinates:{}</p>
                 </div>
             </div>
             <div className='flex items-center gap-4'>
