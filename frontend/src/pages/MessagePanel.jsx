@@ -37,10 +37,10 @@ useEffect(() => {
 
   const getFriendlyStatus = (status_str) => {
     switch (status_str.toLowerCase()) {
-      case 'danger':
+      case 'alert':
         return 'We are at risk! Need help ASAP';
-      case 'needfood':
-        return 'Need food / water / medical supplies';
+      case 'aid':
+        return 'Needs food, water, or medicine';
       case 'safe':
         return 'Safe';
       default:
@@ -77,6 +77,8 @@ useEffect(() => {
 
   fetchAllert();
 }, [familyinfo]);
+
+console.log(reports)
 
 
 useEffect(()=>{
@@ -151,7 +153,7 @@ console.log(reports)
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 sm:grid-cols-1  grid-cols-2  gap-y-10  rounded-xl mt-8 shadow-2xl'>
+                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 grid-cols-1  gap-y-10  rounded-xl mt-8 shadow-2xl'>
                     {reports.map(data=>(
                         <div key={data.id}>
                             <Messages {...data} />
