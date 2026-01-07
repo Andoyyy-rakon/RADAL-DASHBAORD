@@ -39,7 +39,8 @@ const messages = ({device_id,family_info,warning_message,lon,lat,location,time,q
             <div className='max-w-md border-b-2 border-b-gray-800 p-2 space-y-3'>
                 <div className='flex gap-2 items-center'>
                     <PcCase className='text-orange-700' size={17}/>
-                    <h3 className='font-bold text-sm'>Id:{device_id}</h3>
+                    <h3 className='font-bold text-sm '>Id:{device_id}</h3>
+                        
                 </div>
                 <div className='flex gap-2 '>
                     <MessageSquareText className='text-orange-700 '/>
@@ -101,15 +102,15 @@ const messages = ({device_id,family_info,warning_message,lon,lat,location,time,q
                 
                 <div className='flex gap-2 pt-3 justify-end'> 
                 <MapPinned className='text-orange-700' size={22}/>
-                <p className='text-sm font-semibold mt-1'>Coordinates: {lon} x {lat}</p>
+                <p className='text-sm font-semibold mt-1'>Coordinates: {lat},{lon}</p>
                 </div>
             </div>
-            <div className='flex items-center gap-4'>
+            {/* <div className='flex items-center gap-4'>
                 
 
                 <button className='bg-yellow-500 px-4 py-2 flex hover:scale-105 hover:bg-orange-600 transition-all duration-300 active:bg-yellow-500 text-white rounded-md font-semibold items-center'>Ack <Send size={20}/>  </button>
 
-            </div>
+            </div> */}
         </div>
 
   )

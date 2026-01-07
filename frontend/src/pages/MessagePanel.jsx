@@ -137,14 +137,14 @@ console.log(reports)
                             <p className="text-3xl font-bold text-gray-800 pt-1">{reports.length}</p>    
                         </div>
 
-                        <div className="bg-white p-4 w-[250px]   rounded-2xl shadow-lg relative">
+                        {/* <div className="bg-white p-4 w-[250px]   rounded-2xl shadow-lg relative">
                             <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600 font-medium">Acknowledge Messages</span>
                             <Mail size={20} className='text-gray-600 mr-4'/>
                             </div>
                                 <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
                                 <p className="text-3xl font-bold text-gray-800 pt-1">21</p>
-                        </div>
+                        </div> */}
 
                         <div className='bg-white overflow-hidden p-1 w-[200px] rounded-2xl shadow-xl relative left-[400px] cursor-pointer hover:scale-110 transition-all duration-300'>
                                 <img src={assets.mapExample} alt="Map" className='w-full h-full object-cover rounded-2xl'/>
