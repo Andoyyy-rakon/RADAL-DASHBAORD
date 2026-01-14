@@ -35,18 +35,34 @@ useEffect(() => {
 }, []);
 
 
-  const getFriendlyStatus = (status_str) => {
-    switch (status_str.toLowerCase()) {
-      case 'alert':
-        return 'We are at risk! Need help ASAP';
-      case 'aid':
-        return 'Needs food, water, or medicine';
-      case 'safe':
-        return 'Safe';
-      default:
-        return status_str;
-    }
-  };
+const getFriendlyStatus = (status_str) => {
+  switch (status_str.toLowerCase()) {
+    case 'alert':
+      return {
+        text: 'We are at risk! Need help ASAP',
+        image: assets.Alert 
+      };
+
+    case 'aid':
+      return {
+        text: 'Needs food, water, or medicine',
+        image: assets.supplies
+      };
+
+    case 'safe':
+      return {
+        text: 'Safe',
+        image: assets.safe 
+      };
+
+    default:
+      return {
+        text: status_str,
+        image: null
+      };
+  }
+};
+
 
 useEffect(() => {
   if (!familyinfo.length) return; 
@@ -64,7 +80,9 @@ useEffect(() => {
           family_info: familydata?.family_name || 'Unknown',
           quantity: familydata?.quantity || 0,
           location: familydata?.location || '',
-          warning_message: getFriendlyStatus(event.status_str)
+          warning_message: getFriendlyStatus(event.status_str),
+          display_time: event.updatedAt || event.createdAt,
+          time_label: 'Alert received'
         };
       });
 
@@ -85,34 +103,45 @@ useEffect(()=>{
 
   const socket = io("http://localhost:3000");
 
-  socket.on("event_update",(event)=>{
-    const fam = familyRef.current.find(f=>f.device_id==event.handheld_id);
+  socket.on("event_update", (event) => {
+  const fam = familyRef.current.find(
+    f => f.device_id === event.handheld_id
+  );
 
-
-  const mergedReport={
-        ...event,
-          device_id:fam?.device_id||0,
-          family_info: fam?.family_name || 'Unknown',
-          quantity: fam?.quantity || 0,
-          location: fam?.location || '',
-          warning_message: getFriendlyStatus(event.status_str)
-
+  const mergedReport = {
+    ...event,
+    device_id: fam?.device_id || event.handheld_id,
+    family_info: fam?.family_name || 'Unknown',
+    quantity: fam?.quantity || 0,
+    location: fam?.location || '',
+    warning_message: getFriendlyStatus(event.status_str),
+    time_label: 'Status updated',
+    display_time: event.updatedAt
   };
 
-  setreports(prev=>{
-    const index = prev.findIndex(r=>r.handheld_id==mergedReport.handheld_id);
+  setreports(prev => {
+    const index = prev.findIndex(
+      r => r.handheld_id === mergedReport.handheld_id
+    );
 
-    if(index!=-1){
+    if (index !== -1) {
       const updated = [...prev];
-      updated[index]=mergedReport;
+      updated[index] = mergedReport;
       return updated;
     }
 
-    return [mergedReport,...prev];
 
+    return [
+      {
+        ...mergedReport,
+        time_label: 'Alert received',
+        display_time: event.createdAt
+      },
+      ...prev
+    ];
   });
-
 });
+
 
   return () => {
       socket.disconnect();
@@ -146,16 +175,16 @@ console.log(reports)
                                 <p className="text-3xl font-bold text-gray-800 pt-1">21</p>
                         </div> */}
 
-                        <div className='bg-white overflow-hidden p-1 w-[200px] rounded-2xl shadow-xl relative left-[400px] cursor-pointer hover:scale-110 transition-all duration-300'>
+                        {/* <div className='bg-white overflow-hidden p-1 w-[200px] rounded-2xl shadow-xl relative left-[400px] cursor-pointer hover:scale-110 transition-all duration-300'>
                                 <img src={assets.mapExample} alt="Map" className='w-full h-full object-cover rounded-2xl'/>
-                        </div>
+                        </div> */}
 
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 grid-cols-1  gap-y-10  rounded-xl mt-8 shadow-2xl'>
+                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 grid-cols-2  gap-y-10  rounded-xl mt-8 shadow-2xl'>
                     {reports.map(data=>(
-                        <div key={data.id}>
+                        <div key={data._id}>
                             <Messages {...data} />
                         </div>
                         
