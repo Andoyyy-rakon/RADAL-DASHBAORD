@@ -1,5 +1,6 @@
 const userInfo = require("../model/userInformation")
-const Events = require("../model/datamodel")
+const Events = require("../model/datamodel");
+
 
 const register =async(req,res)=>{
     try{
@@ -155,11 +156,44 @@ const getdataReceive = async(req,res)=>{
 }
 
 
+const deleteuser = async(req,res)=>{
+    try{
+        const {id} = req.params;
+        console.log("DeletedID",id)
+
+        const deleted =await userInfo.findByIdAndDelete(id);
+
+        if(!deleted){
+            return res.status(404).json({success:false, message:"Record not found"})
+        }
+
+        const io = req.app.get("io");
+        io.emit("event_deleted",{
+            _id:deleted._id
+        })
+
+        res.status(200).json({
+            success:true,
+            messages:"Successfully deleted",
+            _id:deleted._id
+        })
+        
+
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
 
 module.exports ={
     register,
     getAllInfo,
     updateInfo,
     dataReceive,
-    getdataReceive
+    getdataReceive,
+    deleteuser
 }

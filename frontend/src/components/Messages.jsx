@@ -2,13 +2,18 @@
 import {MessageSquareText,MapPinned,PcCase,Send,Copy} from 'lucide-react'
 import { formatDate,timeAgo } from '../components/formula';
 import { assets } from '../assets/asset';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 
-const messages = ({device_id,family_info,warning_message,lon,lat,location,time,quantity,status_str,display_time,time_label}) => {
+const messages = ({device_id,family_info,warning_message,lon,lat,location,time,quantity,status_str,display_time,time_label,onSelect,isActive}) => {
 
   const[copy,setcopy]=useState(false)
 
+
+  useEffect(()=>{
+    onSelect()
+
+  },[lon,lat])
   const messageColor={
     ALERT:"text-red-500",
     AID:"text-blue-500",
@@ -41,16 +46,17 @@ const messages = ({device_id,family_info,warning_message,lon,lat,location,time,q
 
 
 const imageAnimation = {
-  SAFE: "animate-float drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]",
-  AID: "animate-pulseSoft drop-shadow-[0_0_20px_rgba(59,130,246,0.7)]",
-  ALERT: "animate-shake drop-shadow-[0_0_25px_rgba(239,68,68,0.9)]",
+  SAFE: "animate-float drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]", 
+  AID: "animate-float drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]", 
+  ALERT: "animate-shake drop-shadow-[0_0_25px_rgba(239,68,68,0.9)]", 
 };
 
 
 
+
   return (
-        <div className='flex gap-3 p-5 items-center'>
-            <div className='max-w-md border-b-2 border-b-gray-800 p-2 space-y-3 relative' >
+        <div className={`hover:bg-gray-200 transition-all duration-300 ease-in-out cursor-pointer flex gap-3 items-center  m-5 pt-2 pb-5 px-1 justify-center rounded-lg shadow-lg ${isActive?'ring-2 ring-orange-500 bg-orange-50' : 'bg-gray-50'}`} onClick={onSelect}>
+            <div className='max-w-md  space-y-3 relative' >
               <div className='flex items-center justify-between'>
                 <div className='flex gap-2 items-center'>
                     <PcCase className='text-orange-700' size={17}/>
@@ -84,10 +90,13 @@ const imageAnimation = {
 
               </div>
                 
-                <div className='flex gap-2 '>
+                <div className='flex gap-2   '>
 
-                    <div className={`${bgColor[status_str]} border-2 ${borderColor[status_str]} p-2 rounded-lg min-w-[400px] min-h-[200px] space-y-3`}>
-                        <div className='flex justify-end'>
+    <div className={` shadow-lg border-slate-300 border-2  bg-white p-2 
+    rounded-lg min-w-[450px] min-h-[200px] space-y-2
+    transition-all duration-300 ease-in-out
+    `}>
+                      <div className='flex justify-end'>
                            
       <div className="relative w-6 h-6 flex justify-center items-center">
     
@@ -129,12 +138,12 @@ const imageAnimation = {
 
                         </div>
                         <div className='flex justify-center items-center max-h-none flex-col'>
-                          <div className='w-[300px] min-h-[200px]'>
+                          <div className='w-[150px] min-h-[150px] absolute top-0'>
                               <img className={`w-full transition-all duration-300 ${imageAnimation[status_str]}`}  src={warning_message.image} alt="" />
 
                           </div>
                           <h1
-                          className={`${messageColor[status_str]} text-2xl font-bold text-center `}
+                          className={`${messageColor[status_str]} text-lg font-bold text-center `}
                           >
                           {warning_message.text}
                     </h1>
@@ -142,26 +151,20 @@ const imageAnimation = {
                         </div>
                         
                       
-                     <h1 className='font-medium text-sm'><span className='font-bold text-lg'>{family_info} </span>family, <span className='text-orange-500 text-lg font-bold'>{quantity}</span> members</h1>
+                     <h1 className='font-medium text-sm'><span className='font-bold text-md'>{family_info} </span>family, <span className='text-orange-500 text-md font-bold'>{quantity}</span> members</h1>
 
-           
                         <h1 className='text-sm'><span className='text-orange-600 font-bold'>Location Description:</span> {location}</h1>
 
-                        
-
-                    </div>
-
-                </div>
-                
-                <div className='flex gap-2 pt-3 justify-end '> 
+        <div className='flex gap-2 pt-3 justify-end  '> 
                 <MapPinned className='text-orange-700' size={22}/>
-<p className="text-sm font-semibold mt-1 flex items-center gap-2">
+<p className="text-sm font-semibold mt-1 flex items-center gap-2 ">
   Coordinates:
   <span className="select-all">
     {lat},{lon}
   </span>
-<Copy className='w-4 text-gray-800 shadow-2xl hover:scale-110 cursor-pointer duration-300 transition-all' onClick={() =>
-{navigator.clipboard.writeText(`${lat},${lon}`)
+<Copy className='w-4 text-gray-800 shadow-2xl hover:scale-110 cursor-pointer duration-300 transition-all' onClick={(e) =>
+{ e.stopPropagation()
+  navigator.clipboard.writeText(`${lat},${lon}`)
 
   setcopy(true)
   setTimeout(()=>{
@@ -173,6 +176,13 @@ const imageAnimation = {
 }
 </p>
                 </div>
+
+                    </div>
+                    
+
+                </div>
+                
+
             </div>
             {/* <div className='flex items-center gap-4'>
                 

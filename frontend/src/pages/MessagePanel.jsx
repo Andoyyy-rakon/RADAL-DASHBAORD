@@ -6,10 +6,11 @@ import { useContext } from 'react';
 import { assets } from '../assets/asset';
 import io from "socket.io-client";
 import api from '../axios/AxiosApiFormat';
+import OfflineMapTest from './OfflineMap';
 
 
 const MessagePanel = () => {
-
+    const [selectedReport, setSelectedReport] = useState(null);
     const [reports,setreports]=useState([]);
     const [familyinfo,setfamilyinfo]=useState([])
     
@@ -182,13 +183,22 @@ console.log(reports)
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px]  grid items-center justify-items-center pt-5 grid-cols-2  gap-y-10  rounded-xl mt-8 shadow-2xl'>
-                    {reports.map(data=>(
+                <div className='max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5   gap-y-10  rounded-xl mt-8 shadow-2xl'>
+                  <div className='min-w-[40%] gird grid-rows-1  '>
+                      {reports.map(data=>(
                         <div key={data._id}>
-                            <Messages {...data} />
+                            <Messages {...data}
+                            onSelect={()=>setSelectedReport(data)}
+                            isActive={selectedReport?._id===data._id}
+                            />
                         </div>
                         
                     ))}
+                  </div>
+                    <div className='w-1/2 h-1/2 flex-1 px-7 py-3'>
+                    <OfflineMapTest selectedReport={selectedReport} />
+                  </div>
+
                 </div>
                 
         </div>

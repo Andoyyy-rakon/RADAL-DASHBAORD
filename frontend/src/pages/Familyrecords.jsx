@@ -50,13 +50,29 @@ useEffect(() => {
     setdata(prev=>prev.map(item=>item._id==updated._id.toString()?updated:item))
   })
 
+  socket.on("event_deleted",({_id})=>{
+    setdata(prev=>prev.filter(item=>item._id!==_id))
+  });
+
   // Cleanup on unmount
   return () => {
     socket.off("new_record");
     socket.off("record_updated");
+    socket.off("event_deleted");
 
   };
 }, []);
+
+
+  const handleDelete = async(_id)=>{
+    try{
+
+      await api.delete(`/users/delete/${_id}`)
+
+    }catch(error){
+      console.log(error)
+    }
+  }
 
 
 
@@ -237,7 +253,7 @@ useEffect(() => {
           <div className='grid grid-cols-2 gap-x-12 gap-y-12 '>
             {data.map(item=>(
               <div className='pt-12 pb-10 relative transition-all duration-300'  key={item._id}>
-                <Familyinfo {...item} onEdit={handleEdit}/>
+                <Familyinfo {...item} onEdit={handleEdit} onDelete={handleDelete} />
               </div>
             ))}
             </div>

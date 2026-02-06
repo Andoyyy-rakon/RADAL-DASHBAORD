@@ -3,7 +3,7 @@ import { Menu, X, Home, BarChart3, FileText, MessageSquare,Trash,Pencil, Globe, 
 import { useState } from 'react';
 
 
-const Familyinfo = ({_id,device_id,family_name,quantity,createdAt,location,onEdit}) => {
+const Familyinfo = ({_id,device_id,family_name,quantity,createdAt,location,onEdit,onDelete}) => {
 
     const [toolBar,setToolbar] = useState(false);
     const [toolTitle,setToolTitle] = useState(false)
@@ -77,6 +77,16 @@ const Familyinfo = ({_id,device_id,family_name,quantity,createdAt,location,onEdi
                         <Trash 
                         className="text-orange-500 transition-all duration-300 hover:scale-150 cursor-pointer" 
                         size={20}
+                        onClick={e=>{
+                          e.stopPropagation();
+                          
+                          const confirmDelete =window.confirm(
+                            "Are you sure you want to delete this record?"
+                          )
+
+                          if(!confirmDelete)return;
+                          onDelete(_id)
+                        }}
 
                         />
 
