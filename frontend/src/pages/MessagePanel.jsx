@@ -7,11 +7,12 @@ import { assets } from '../assets/asset';
 import io from "socket.io-client";
 import api from '../axios/AxiosApiFormat';
 import OfflineMapTest from './OfflineMap';
+import ChartStat from './ChartStat';
 
 
 const MessagePanel = () => {
     const [selectedReport, setSelectedReport] = useState(null);
-    const [reports,setreports]=useState([]);
+    const {reports,setreports} = useContext(UserContext)
     const [familyinfo,setfamilyinfo]=useState([])
     
     const familyRef = React.useRef([]);
@@ -46,7 +47,7 @@ const getFriendlyStatus = (status_str) => {
 
     case 'aid':
       return {
-        text: 'Needs food, water, or medicine',
+        text: 'Need food and water',
         image: assets.supplies
       };
 
@@ -87,6 +88,7 @@ useEffect(() => {
         };
       });
 
+
       setreports(merged);
 
     } catch (error) {
@@ -120,6 +122,8 @@ useEffect(()=>{
     display_time: event.updatedAt
   };
 
+  console.log(mergedReport)
+
   setreports(prev => {
     const index = prev.findIndex(
       r => r.handheld_id === mergedReport.handheld_id
@@ -151,34 +155,22 @@ useEffect(()=>{
 },[])
 
 
-console.log(reports)
 
   return (
     <div className='flex-1 min-h-screen pl-7 bg-orange-50'>
         <div className='pl-7 pr-10 pt-3'>
             <h1 className='text-3xl font-bold text-orange-700'>Dashboard</h1>
-                <div className="flex  gap-4 mt-5">
-                    <div className="bg-white p-4 w-[250px]  rounded-2xl shadow-lg relative">
+                <div className="flex items-end gap-4 mt-5">
+                    <div className="bg-white p-4 w-[250px]  rounded-2xl shadow-lg relative ">
                         <div className="flex justify-between  items-center mb-2">
                             <span className="text-gray-600 font-medium">New Messages</span>
                             <Mail size={20} className='text-gray-600 mr-4 '/>
                         </div>
                             <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
                             <p className="text-3xl font-bold text-gray-800 pt-1">{reports.length}</p>    
-                        </div>
+                      </div>
 
-                        {/* <div className="bg-white p-4 w-[250px]   rounded-2xl shadow-lg relative">
-                            <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-600 font-medium">Acknowledge Messages</span>
-                            <Mail size={20} className='text-gray-600 mr-4'/>
-                            </div>
-                                <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
-                                <p className="text-3xl font-bold text-gray-800 pt-1">21</p>
-                        </div> */}
-
-                        {/* <div className='bg-white overflow-hidden p-1 w-[200px] rounded-2xl shadow-xl relative left-[400px] cursor-pointer hover:scale-110 transition-all duration-300'>
-                                <img src={assets.mapExample} alt="Map" className='w-full h-full object-cover rounded-2xl'/>
-                        </div> */}
+                      <ChartStat reports={reports} />
 
                         
                 </div>

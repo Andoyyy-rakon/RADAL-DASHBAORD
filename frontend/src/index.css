@@ -36,3 +36,10 @@ body {
 
 
 
+.recharts-legend-wrapper {
+  padding-top: 0px !important;
+}
+
+.recharts-legend-item {
+  margin-bottom: 2px !important;
+}

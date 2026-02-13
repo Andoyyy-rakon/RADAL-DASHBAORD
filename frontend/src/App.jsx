@@ -11,13 +11,15 @@ import Familyrecords from "./pages/Familyrecords"
 export default function App() {
 
     const [data,setdata]=useState([]);
+    const [reports,setreports]=useState([]);
+    
 
   
 
 
   return (
     <div className='min-h-screen flex flex-row '>
-      <UserContext.Provider value={{data,setdata}}>
+      <UserContext.Provider value={{data,setdata,reports,setreports}}>
         <BrowserRouter>
         <Sidebar/>
 

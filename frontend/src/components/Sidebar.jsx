@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings, icons,UsersRound} from 'lucide-react';
 import { Link,useLocation } from 'react-router-dom';
+import { UserContext } from '../usercontext/UserContext';
+
+
 const Sidebar = () => {
       const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+        const{reports,setreports}=useContext(UserContext)
         const location = useLocation();
 
         const pathToLabel = {
@@ -70,7 +75,7 @@ const Sidebar = () => {
                     <item.icon size={20} />
                     <span className={`${!isSidebarOpen && 'hidden'}`}>{item.label}</span>
                     {item.notification && isSidebarOpen && (
-                      <span className="ml-auto bg-orange-700 text-white text-xs px-2 py-1 rounded-full">1</span>
+                      <span className="ml-auto bg-orange-700 text-white text-xs px-2 py-1 rounded-full">{reports.length}</span>
                     )}
                   </Link>
                 </li>

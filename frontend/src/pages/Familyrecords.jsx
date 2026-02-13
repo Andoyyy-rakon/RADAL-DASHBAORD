@@ -1,5 +1,5 @@
 
-import { Menu, X, Home, BarChart3, FileText, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
+import { Menu, X, Home, BarChart3, FileText,Mail,House, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import api from '../axios/AxiosApiFormat';
@@ -250,6 +250,14 @@ useEffect(() => {
 
 
         {!toggle &&<div className='h-full flex-1 mx-auto pt-10'>
+          <div className="bg-white p-4 w-[250px]  rounded-2xl shadow-lg relative">
+                        <div className="flex justify-between  items-center mb-2">
+                            <span className="text-gray-600 font-medium">Registered Households</span>
+                            <House size={20} className='text-gray-600 mr-4 '/>
+                        </div>
+                            <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
+                            <p className="text-3xl font-bold text-gray-800 pt-1">{data.length}</p>    
+                        </div>
           <div className='grid grid-cols-2 gap-x-12 gap-y-12 '>
             {data.map(item=>(
               <div className='pt-12 pb-10 relative transition-all duration-300'  key={item._id}>
