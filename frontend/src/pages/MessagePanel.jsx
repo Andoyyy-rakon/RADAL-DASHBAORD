@@ -1,5 +1,7 @@
 import React, { useEffect, useState,} from 'react'
-import {Mail, User} from 'lucide-react';
+
+
+import {Mail, User,Expand} from 'lucide-react';
 import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
 import { useContext } from 'react';
@@ -10,12 +12,29 @@ import OfflineMapTest from './OfflineMap';
 import ChartStat from './ChartStat';
 
 
+
 const MessagePanel = () => {
     const [selectedReport, setSelectedReport] = useState(null);
     const {reports,setreports} = useContext(UserContext)
     const [familyinfo,setfamilyinfo]=useState([])
     
     const familyRef = React.useRef([]);
+
+
+    const [filters, setFilters] = useState({
+      ALERT: true,
+      AID: true,
+      SAFE: true
+    });
+
+  const toggleFilter = (type) => {
+  setFilters(prev => ({
+    ...prev,
+    [type]: !prev[type]
+  }));
+  };
+
+  const filteredReports = reports.filter(report => filters[report.status_str]);
 
 
 useEffect(() => {
@@ -175,9 +194,50 @@ useEffect(()=>{
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5   gap-y-10  rounded-xl mt-8 shadow-2xl'>
-                  <div className='min-w-[40%] gird grid-rows-1  '>
-                      {reports.map(data=>(
+                <div className='max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5 px-2   gap-y-10  rounded-xl mt-8 shadow-2xl'>
+               
+                <div className='min-w-[40%]'>
+                  <div className="flex gap-4 mt-4 justify-between px-3 border-b-2 mx-4 pb-2 border-gray-400">
+<div className='flex gap-5'>
+  <label className="flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={filters.ALERT}
+      onChange={() => toggleFilter("ALERT")}
+      className='accent-orange-600'
+    />
+    <span className="text-red-500  font-semibold">Alert</span>
+  </label>
+
+  <label className="flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={filters.AID}
+      onChange={() => toggleFilter("AID")}
+      className='accent-orange-600'
+    />
+    <span className="text-blue-500 font-semibold">Aid</span>
+  </label>
+
+  <label className="flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={filters.SAFE}
+      onChange={() => toggleFilter("SAFE")}
+      className='accent-orange-600'
+    />
+    <span className="text-green-500 font-semibold">Safe</span>
+  </label>
+</div>
+
+<div>
+ <Expand size={18} className='text-gray-600'/>
+
+</div>
+  
+</div>
+                  <div className='grid grid-rows-1  '>
+                      {filteredReports.map(data=>(
                         <div key={data._id}>
                             <Messages {...data}
                             onSelect={()=>setSelectedReport(data)}
@@ -187,7 +247,9 @@ useEffect(()=>{
                         
                     ))}
                   </div>
-                    <div className='w-1/2 h-1/2 flex-1 px-7 py-3'>
+                </div>
+                  
+                    <div className='w-1/2 h-1/2 flex-1 px-5 py-3'>
                     <OfflineMapTest selectedReport={selectedReport} />
                   </div>
 
