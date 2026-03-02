@@ -105,7 +105,8 @@ const Familyinfo = ({_id,device_id,family_name,quantity,createdAt,location,onEdi
 
                     
                 </div>}
-              <div className='bg-white relative min-h-[200px]   border-2 border-transparent shadow-xl p-8 rounded-2xl  hover:border-2 hover:border-orange-500 transition-all duration-300 cursor-pointer' onClick={()=>{
+              {/* Main card */}
+              <div className={`${toolBar?'bg-orange-100':'bg-white'} relative min-h-[200px] min-w-[600px]   border-2 border-transparent shadow-xl p-8 rounded-2xl  hover:border-2 hover:border-orange-500 transition-all duration-300 cursor-pointer`} onClick={()=>{
                 setToolbar(prev=>!prev)
               }}>
                 <div className='flex justify-end text-orange-500 absolute top-3 right-5'>
