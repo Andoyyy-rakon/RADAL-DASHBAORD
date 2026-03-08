@@ -1,5 +1,5 @@
 
-import { Menu, X, Home, BarChart3, FileText,Mail,House, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
+import { Menu, X, Home, BarChart3,Search, FileText,Mail,House,Star, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
 import { useState,useMemo,useEffect,useContext } from 'react';
 import api from '../axios/AxiosApiFormat';
 import Familyinfo from './Familyinfo';
@@ -323,45 +323,96 @@ useEffect(() => {
 
           {/* Dashboard Overview */}
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div className="bg-white p-5 rounded-2xl shadow-lg">
-      <p className="text-gray-500 text-sm">Total Households</p>
-      <p className="text-3xl font-bold text-gray-800">{stats.totalHouseholds}</p>
+
+    <div className="bg-white px-7 py-5 rounded-2xl shadow-lg flex items-center gap-8">
+      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
+        <Home/>
+      </div>
+      <div className='flex-1'>
+        <p className="text-gray-500 text-sm">Total Households</p>
+        <div className='border'></div>
+        <p className="text-3xl font-bold text-gray-800">{stats.totalHouseholds}</p>
+      </div>
     </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg">
-      <p className="text-gray-500 text-sm">Total Members</p>
-      <p className="text-3xl font-bold text-gray-800">{stats.totalMembers}</p>
+
+    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
+      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
+          <User/>
+      </div>
+      
+      <div className='flex-1'>
+        <p className="text-gray-500 text-sm">Total Members</p>
+        <div className='border'></div>
+        <p className="text-3xl font-bold text-gray-800">{stats.totalMembers}</p>
+      </div>
+      
     </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg">
-      <p className="text-gray-500 text-sm">Avg Members / Family</p>
-      <p className="text-3xl font-bold text-gray-800">{stats.averageMembers}</p>
+    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
+      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full' >
+        <BarChart3/>
+      </div>
+      <div className='flex-1'>
+          <p className="text-gray-500 text-sm">Avg Members / Family</p>
+          <div className='border'></div>
+          <p className="text-3xl font-bold text-gray-800">{stats.averageMembers}</p>
+      </div>
+      
     </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg">
-      <p className="text-gray-500 text-sm">Largest Family</p>
-      <p className="text-lg font-bold text-gray-800">
+    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
+      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
+          <Star/>
+      </div>
+      <div className='flex-1'>
+        <p className="text-gray-500 text-sm">Largest Family</p>
+        <div className='border'></div>
+        <p className="text-lg font-bold text-gray-800">
         {stats.largestFamily ? `${stats.largestFamily.family_name} (${stats.largestFamily.quantity})` : "—"}
-      </p>
+        </p>
+      </div>
     </div>
+
   </div>
+
+
+
 
   <div className="flex flex-col md:flex-row  items-center pt-8 justify-end mb-2">
   {/* Search */}
-  <div className='bg-white px-3 py-2 rounded-lg space-x-5'>
-<input
-    type="text"
-    placeholder="Search family name..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="transition-all duration-300 ease-in-out w-full md:w-72 px-4 py-2 rounded-xl border border-gray-300 focus:border-none shadow-sm focus:ring-2 bg-gray-50 focus:ring-orange-400 outline-none"
-  />
+  <div className='bg-white px-3 py-2 rounded-lg flex gap-5'>
+ 
+  <div className="relative w-full md:w-72">
+
+    {/* Search Icon */}
+    {searchTerm === "" && (
+      <Search
+        size={18}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-all duration-200"
+      />
+    )}
+
+    <input
+      type="text"
+      placeholder="Search family name..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 
+                bg-gray-50 shadow-sm 
+                focus:ring-2 focus:ring-orange-400 
+                outline-none transition-all duration-300"
+    />
+  </div>
 
   {/* Member Filter */}
   <select
     value={memberFilter}
     onChange={(e) => setMemberFilter(e.target.value)}
-    className="transition-all duration-300 ease-in-out px-4 py-2 rounded-xl border shadow-sm focus:ring-2 bg-gray-50 focus:border-none focus:ring-orange-400 outline-none"
+    className="px-4 py-2 rounded-xl border border-gray-300
+           bg-gray-50 shadow-sm
+           focus:ring-2 focus:ring-orange-400 focus:border-orange-400
+           outline-none transition-all duration-300"
   >
     <option value="ALL">All Members</option>
     <option value="SMALL">Small (1–3)</option>
@@ -374,16 +425,19 @@ useEffect(() => {
   <select
     value={sortBy}
     onChange={(e) => setSortBy(e.target.value)}
-    className="transition-all duration-300 ease-in-out px-4 py-2 rounded-xl border shadow-sm focus:ring-2  bg-gray-50 focus:border-none focus:ring-orange-400 outline-none"
+    className="px-4 py-2 rounded-xl border border-gray-300
+           bg-gray-50 shadow-sm
+           focus:ring-2 focus:ring-orange-400 focus:border-orange-400
+           outline-none transition-all duration-300"
   >
     <option value="NEWEST">Newest</option>
     <option value="OLDEST">Oldest</option>
-    <option value="NAME_ASC">Name A → Z</option>
-    <option value="NAME_DESC">Name Z → A</option>
-    <option value="MEMBERS_ASC">Members ↑</option>
-    <option value="MEMBERS_DESC">Members ↓</option>
-    <option value="ID_ASC">Device ID ↑</option>
-    <option value="ID_DESC">Device ID ↓</option>
+    <option value="NAME_ASC">Name A–Z</option>
+    <option value="NAME_DESC">Name Z–A</option>
+    <option value="MEMBERS_ASC">Members Low–High</option>
+    <option value="MEMBERS_DESC">Members High–Low</option>
+    <option value="ID_ASC">Device ID Low–High</option>
+    <option value="ID_DESC">Device ID High–Low</option>
   </select>
   </div>
   

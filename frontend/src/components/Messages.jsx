@@ -14,6 +14,12 @@ const messages = ({device_id,family_info,warning_message,lon,lat,location,time,q
     onSelect()
 
   },[lon,lat])
+
+  const borderRing={
+    ALERT:"border-red-500",
+    AID:"border-blue-500",
+    SAFE:"border-green-500"
+  }
   const messageColor={
     ALERT:"text-red-500",
     AID:"text-blue-500",
@@ -55,7 +61,7 @@ const imageAnimation = {
 
 
   return (
-        <div className={`hover:bg-gray-200 transition-all duration-300 ease-in-out cursor-pointer flex gap-3 items-center  m-5 pt-2 pb-5 px-1 justify-center rounded-lg shadow-lg ${isActive?'ring-2 ring-orange-500 bg-orange-50' : 'bg-gray-50'}`} onClick={onSelect}>
+        <div className={`hover:bg-gray-200 transition-all duration-300 ease-in-out cursor-pointer flex gap-3 items-center  m-5 pt-2 pb-5 px-1 justify-center rounded-xl shadow-lg ${isActive?'ring-2 ring-orange-500 bg-orange-50' : 'bg-gray-100'}`} onClick={onSelect}>
             <div className='max-w-md  space-y-3 relative' >
               <div className='flex items-center justify-between'>
                 <div className='flex gap-2 items-center'>
@@ -92,7 +98,7 @@ const imageAnimation = {
                 
                 <div className='flex gap-2   '>
 
-    <div className={` shadow-lg border-slate-300 border-2  bg-white p-2 
+    <div className={` shadow-lg ${borderRing[status_str]} border-2  bg-white p-2 
     rounded-lg min-w-[450px] min-h-[200px] space-y-2
     transition-all duration-300 ease-in-out
     `}>

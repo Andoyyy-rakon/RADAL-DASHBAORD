@@ -1,6 +1,4 @@
 import React, { useEffect, useState,} from 'react'
-
-
 import {Mail, User,Expand} from 'lucide-react';
 import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
@@ -87,8 +85,6 @@ const getFriendlyStatus = (status_str) => {
 
 useEffect(() => {
   if (!familyinfo.length) return; 
-
-
 
   const fetchAllert = async () => {
     try {
@@ -236,7 +232,7 @@ useEffect(()=>{
 </div>
   
 </div>
-                  <div className='grid grid-rows-1  '>
+                  <div className='grid grid-rows-1   '>
                       {filteredReports.map(data=>(
                         <div key={data._id}>
                             <Messages {...data}
