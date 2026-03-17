@@ -50,13 +50,13 @@ useEffect(() => {
 
   return (
 
-      <div className="w-full h-screen flex justify-center">
+      <div className="w-full h-[320px] flex justify-center">
         <MapContainer
           center={[10.6431164, 122.9435287]}
           zoom={40}
           minZoom={14}
           maxZoom={16}
-          className="h-[50%] w-[100%]"
+          className="h-[100%] w-[100%] "
           whenCreated={(map) => (mapRef.current = map)}
         >
           <TileLayer

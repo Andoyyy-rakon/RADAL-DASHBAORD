@@ -1,12 +1,14 @@
 
-import safe from './safe.png'
-import supplies from './supplies.png'
+import safe from './Safe.png'
+import supplies from './Aid.png'
 import Alert from './Alert.png'
-import mcAlert from './mcAlert.png'
+import Ligtaslogo from './Ligtaslogo.png'
+
 
 export const assets={
     safe,
     supplies,
     Alert,
-    mcAlert
+    Ligtaslogo
+
 }

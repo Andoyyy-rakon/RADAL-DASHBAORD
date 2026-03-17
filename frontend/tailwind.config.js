@@ -43,6 +43,11 @@ module.exports = {
         pulseSoft: 'pulseSoft 1.8s ease-in-out infinite',
         shake: 'shake 0.45s ease-in-out infinite',
       },
+      boxShadow: {
+        card: "0 10px 25px rgba(0,0,0,0.05)",
+        floating: "0 15px 35px rgba(0,0,0,0.08)",
+        soft: "0 5px 15px rgba(0,0,0,0.04)"
+      }
     },
   },
   plugins: [],

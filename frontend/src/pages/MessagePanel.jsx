@@ -1,5 +1,5 @@
 import React, { useEffect, useState,} from 'react'
-import {Mail, User,Expand} from 'lucide-react';
+import {Mail, User,Expand,Box,ChevronDownIcon} from 'lucide-react';
 import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
 import { useContext } from 'react';
@@ -11,11 +11,12 @@ import ChartStat from './ChartStat';
 
 
 
+
 const MessagePanel = () => {
     const [selectedReport, setSelectedReport] = useState(null);
     const {reports,setreports} = useContext(UserContext)
     const [familyinfo,setfamilyinfo]=useState([])
-    
+    const [open, setOpen] = useState(false);
     const familyRef = React.useRef([]);
 
 
@@ -172,13 +173,16 @@ useEffect(()=>{
 
 
   return (
-    <div className='flex-1 min-h-screen pl-7 bg-orange-50'>
+    <div className='flex-1 min-h-screen pl-7 bg-[#F5F7FB]'>
         <div className='pl-7 pr-10 pt-3'>
-            <h1 className='text-3xl font-bold text-orange-700'>Dashboard</h1>
+            <div className=' flex gap-2  items-center'>
+                <Box size={28}/>
+                <h1 className='text-3xl  font-semibold text-[#1F2937]'>Dashboard</h1>
+            </div>
                 <div className="flex items-end gap-4 mt-5">
                     <div className="bg-white p-4 w-[250px]  rounded-2xl shadow-lg relative ">
                         <div className="flex justify-between  items-center mb-2">
-                            <span className="text-gray-600 font-medium">New Messages</span>
+                            <span className="text-gray-600 font-medium ">New Messages</span>
                             <Mail size={20} className='text-gray-600 mr-4 '/>
                         </div>
                             <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
@@ -190,19 +194,20 @@ useEffect(()=>{
                         
                 </div>
 
-                <div className='max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5 px-2   gap-y-10  rounded-xl mt-8 shadow-2xl'>
+                <div className='h-full w-full bg-gray-0 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-50 border border-gray-100
+ max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5 px-2   gap-y-10   mt-8 shadow-2xl'>
                
-                <div className='min-w-[40%]'>
-                  <div className="flex gap-4 mt-4 justify-between px-3 border-b-2 mx-4 pb-2 border-gray-400">
-<div className='flex gap-5'>
+    <div className='w-1/2 px-3'>
+      <div className="flex gap-4 mt-4 justify-between items-center w-[97%] px-3 border-b-2 mx-4 pb-2 border-gray-400 shadow-soft">
+{/* <div className='flex gap-5'>
   <label className="flex items-center gap-2 cursor-pointer">
     <input
       type="checkbox"
       checked={filters.ALERT}
       onChange={() => toggleFilter("ALERT")}
-      className='accent-orange-600'
+      className='accent-gray-500'
     />
-    <span className="text-red-500  font-semibold">Alert</span>
+    <span className="text-[#EF646A] font-semibold">Alert</span>
   </label>
 
   <label className="flex items-center gap-2 cursor-pointer">
@@ -210,9 +215,9 @@ useEffect(()=>{
       type="checkbox"
       checked={filters.AID}
       onChange={() => toggleFilter("AID")}
-      className='accent-orange-600'
+      className='accent-gray-500'
     />
-    <span className="text-blue-500 font-semibold">Aid</span>
+    <span className="text-[#549EF2] font-semibold">Aid</span>
   </label>
 
   <label className="flex items-center gap-2 cursor-pointer">
@@ -220,11 +225,69 @@ useEffect(()=>{
       type="checkbox"
       checked={filters.SAFE}
       onChange={() => toggleFilter("SAFE")}
-      className='accent-orange-600'
+      className='accent-gray-500'
     />
-    <span className="text-green-500 font-semibold">Safe</span>
+    <span className="text-[#4DBA87] font-semibold">Safe</span>
   </label>
-</div>
+</div> */}
+
+<div className="relative w-40 ">
+     
+      {/* <button
+        onClick={() => setOpen(!open)}
+        className="w-full px-3 py-1 bg-[#FACC15] rounded-lg text-left shadow-sm"
+      >
+        Filter ▼
+      </button> */}
+
+      <button
+        onClick={() => setOpen(!open)}
+        className={`w-full px-3 py-1 border-2    ${open?"bg-white  border-[#FACC15]":"bg-[#FACC15] border-transparent "} rounded-lg text-left shadow-sm flex justify-between
+        transition-all duration-300 ease-in-out items-center`}
+      >
+        <span className='font-medium '>Filter</span>
+        {/* Arrow */}
+        <ChevronDownIcon
+          className={`w-5 h-5 text-black transform transition-transform duration-300 ${
+            open ? "rotate-180" : "rotate-0"
+          }`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg p-2 z-10">
+          
+          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.ALERT}
+              onChange={() => toggleFilter("ALERT")}
+            />
+            <span className="text-[#EF646A] font-semibold">Alert</span>
+          </label>
+
+          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.AID}
+              onChange={() => toggleFilter("AID")}
+
+            />
+            <span className="text-[#549EF2] font-semibold">Aid</span>
+          </label>
+
+          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.SAFE}
+              onChange={() => toggleFilter("SAFE")}
+            />
+            <span className="text-[#4DBA87] font-semibold">Safe</span>
+          </label>
+
+        </div>
+      )}
+    </div>
 
 <div>
  <Expand size={18} className='text-gray-600'/>
@@ -232,7 +295,7 @@ useEffect(()=>{
 </div>
   
 </div>
-                  <div className='grid grid-rows-1   '>
+                  <div className='flex flex-col w-full pr-5'>
                       {filteredReports.map(data=>(
                         <div key={data._id}>
                             <Messages {...data}
@@ -245,7 +308,7 @@ useEffect(()=>{
                   </div>
                 </div>
                   
-                    <div className='w-1/2 h-1/2 flex-1 px-5 py-3'>
+                  <div className='w-1/2 h-[50%]  flex-1 px-3  py-3 shadow-floating rounded-lg '>
                     <OfflineMapTest selectedReport={selectedReport} />
                   </div>
 

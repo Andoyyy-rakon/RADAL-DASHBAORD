@@ -31,7 +31,7 @@ export default function TrendChart({ reports }) {
   }));
 
   return (
-  <div className="bg-white p-3 w-80 h-40 rounded-xl shadow-lg">
+  <div className=" p-3 w-80 h-40  bg-white border border-[#E6EAF0] rounded-xl shadow-card">
     <h2 className="font-semibold text-sm text-center mb-1">
       Alerts Per Hour
     </h2>

@@ -1,9 +1,9 @@
     import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
     const COLORS = {
-    SAFE: "#22c55e",
-    "ALERT": "#ef4444",
-    "AID": "#60A5FA"
+    SAFE: "#4DBA87",
+    "ALERT": "#EF646A",
+    "AID": "#549EF2"
     };
 
     export default function StatusChart({ reports }) {
@@ -18,7 +18,7 @@
     }));
 
     return (
-    <div className="bg-white p-3 w-80 h-40 rounded-xl shadow-lg">
+    <div className="p-3 w-80 h-40  bg-white border border-[#E6EAF0] rounded-xl shadow-card">
     <h2 className="font-semibold text-sm  text-center">Status Distribution</h2>
     <ResponsiveContainer width="100%" height="100%">
         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
