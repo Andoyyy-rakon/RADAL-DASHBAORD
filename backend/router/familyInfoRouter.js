@@ -1,14 +1,14 @@
 const express = require("express");
-const {register,getAllInfo,updateInfo,dataReceive,getdataReceive,deleteuser} =require("../controllers/familyRegistration")
-
+const {register,getAllInfo,updateInfo,dataReceive,getdataReceive,deleteuser, deleteEvent} =require("../controllers/familyRegistration")
+const authMiddleware = require("../middleware/authmiddleware")
 const router=express.Router();
 
-router.post("/register",register);
-router.get("/getAllinfo",getAllInfo)
-router.put("/update/:id",updateInfo)
+router.post("/register",authMiddleware,register);
+router.get("/getAllinfo",authMiddleware,getAllInfo)
+router.put("/update/:id",authMiddleware,updateInfo)
 router.post("/events",dataReceive)
 router.get("/events",getdataReceive)
-router.delete("/delete/:id",deleteuser)
-
+router.delete("/delete/:id",authMiddleware,deleteuser)
+router.delete("/events/delete/:id",authMiddleware,deleteEvent)
 
 module.exports=router;

@@ -1,51 +1,38 @@
-
-import { Menu, X, Home, BarChart3,Search, FileText,Mail,House,Star, MessageSquare, Globe, LogOut, ChevronRight, Bell, Settings,User,icons,UsersRound,PcCase,UserRoundPen,CircleUserRound} from 'lucide-react';
-import { useState,useMemo,useEffect,useContext } from 'react';
-import api from '../axios/AxiosApiFormat';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
+import { CircleUserRound, FileText, Home, User, BarChart3, Star, Search, UsersRound } from 'lucide-react';
 import Familyinfo from './Familyinfo';
-import io from "socket.io-client";
 import { UserContext } from '../usercontext/UserContext';
-
-
+import axiosPrivate from '../api/axiosPrivate';
+import Toast from '../components/Toast';
+import io from "socket.io-client";
+import NumberInput from '../components/NumberInput';
 
 const Familyrecords = () => {
+    const { data, setdata, assets } = useContext(UserContext);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [toastConfig, setToastConfig] = useState({ message: '', type: 'success' });
+    const [toggle, settoggle] = useState(false);
+    const [fetch, setfetch] = useState(false);
+    const [records, setrecords] = useState({ device_id: "", family_name: "", quantity: "", location: "" });
+    const [searchTerm, setSearchTerm] = useState("");
+    const [memberFilter, setMemberFilter] = useState("ALL");
+    const [sortBy, setSortBy] = useState("NEWEST");
 
-  
+    const showToast = (msg, type = 'success') => {
+        setToastConfig({ message: msg, type });
+        setShowSuccess(true);
+    };
 
-  const {data,setdata}=useContext(UserContext)
-  const [message,setmessage] =useState("");
-  const [showSuccess,setShowSuccess]=useState(false)
+    const stats = useMemo(() => {
+        const totalHouseholds = data.length;
+        const totalMembers = data.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+        const averageMembers = totalHouseholds === 0 ? 0 : (totalMembers / totalHouseholds).toFixed(1);
+        const largestFamily = data.length === 0 ? null : data.reduce((max, item) => 
+            Number(item.quantity) > Number(max?.quantity || 0) ? item : max, null);
 
-  const [searchTerm, setSearchTerm] = useState("");      // for search input
-  const [memberFilter, setMemberFilter] = useState("ALL"); // for size filter
-  const [sortBy, setSortBy] = useState("NEWEST");
+        return { totalHouseholds, totalMembers, averageMembers, largestFamily };
+    }, [data]);
 
-//para ni sa max chart sa babaw
-  const stats = useMemo(() => {
-  const totalHouseholds = data.length;
-
-  const totalMembers = data.reduce(
-    (sum, item) => sum + Number(item.quantity || 0),
-    0
-  );
-
-  const averageMembers =
-    totalHouseholds === 0 ? 0 : (totalMembers / totalHouseholds).toFixed(1);
-
-  const largestFamily =
-    data.length === 0
-      ? null
-      : data.reduce((max, item) =>
-          Number(item.quantity) > Number(max.quantity) ? item : max
-        );
-
-  return {
-    totalHouseholds,
-    totalMembers,
-    averageMembers,
-    largestFamily,
-  };
-}, [data]);
 
 
 //Para ni sa search and 
@@ -88,16 +75,10 @@ const filteredData = useMemo(() => {
 
 
 
-  const [records,setrecords]=useState({
-  device_id:"",
-  family_name:"",
-  quantity:"",
-  location:""
-})
-  const [toggle,settoggle] = useState(false)
+
 
  const getAllInfo = async()=>{
-    const list = await api.get('/users/getAllinfo');
+    const list = await axiosPrivate.get('/users/getAllinfo');
 
     setdata(list.data.data)
  }
@@ -126,10 +107,7 @@ useEffect(() => {
 
   // Cleanup on unmount
   return () => {
-    socket.off("new_record");
-    socket.off("record_updated");
-    socket.off("event_deleted");
-
+    socket.disconnect();
   };
 }, []);
 
@@ -137,7 +115,7 @@ useEffect(() => {
   const handleDelete = async(_id)=>{
     try{
 
-      await api.delete(`/users/delete/${_id}`)
+      await axiosPrivate.delete(`/users/delete/${_id}`)
 
     }catch(error){
       console.log(error)
@@ -156,7 +134,7 @@ useEffect(() => {
     }
 
     try{
-      await api.put(`/users/update/${_id}`,updatedData)
+      await axiosPrivate.put(`/users/update/${_id}`,updatedData)
     }
     catch(error){
       console.log(error)
@@ -169,301 +147,223 @@ useEffect(() => {
   setrecords(prev=>({...prev,[e.target.name]:e.target.value})); 
  }
 
- const handleSubmit =async(e)=>{
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if(records.device_id===""||records.family_name===""||records.quantity===""||records.location==="")return alert("Please input all fields");
-
-  try{
-    const res =await api.post('/users/register',records);
-    console.log(res.data?.success);
-    if(res.data?.success){
-      setmessage(res.data?.message||"Registered Successfully");
-      setShowSuccess(true);
-        setrecords({
-        device_id:"",
-        family_name:"",
-        quantity:"",
-        location:""
-      })
-      setTimeout(()=>{
-        setShowSuccess(false);
-        settoggle(false);
-      },2000);
+    if (records.device_id === "" || records.family_name === "" || records.quantity === "" || records.location === "") {
+        return showToast("Please input all fields", "error");
     }
 
-
-  }catch(error){
-    setmessage(error.response?.data?.message || "Registration faild")
-    setShowSuccess(true)
-    setTimeout(()=>{
-      setShowSuccess(false)
-    },5000)
-    console.log(error.response?.data?.message ||"Registration faild")
-  }
-
-
- }
+    try {
+        const res = await axiosPrivate.post('/users/register', records);
+        if (res.data?.success) {
+            showToast(res.data?.message || "Registered Successfully!");
+            setrecords({ device_id: "", family_name: "", quantity: "", location: "" });
+            settoggle(false);
+            setfetch(prev => !prev);
+        } else {
+            showToast(res.data?.message || "Registration failed", "error");
+        }
+    } catch (error) {
+        showToast(error.response?.data?.message || "Registration failed", "error");
+    }
+  };
 
   return (
 
-    <div className='flex flex-col flex-1 pl-[90px]  bg-orange-50 px-5'>
-        <nav className='flex   justify-between items-center py-6 px-7'>
-            <h1  className='text-2xl font-bold text-orange-700'>Household Records</h1>
+    <div className='flex flex-col flex-1 bg-slate-50 dark:bg-slate-900 transition-colors duration-300'>
+        <nav className='flex flex-col sm:flex-row justify-between items-start sm:items-center py-6 px-4 sm:px-8 gap-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-md'>
+            <h1 className='text-3xl font-bold text-slate-800 dark:text-white'>Household Records</h1>
 
             <button
             type="submit"
-            className="flex justify-center gap-1 items-center shadow-xl text-md bg-gray-50 backdrop-blur-md font-medium isolation-auto border-gray-50 before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-yellow-500 hover:text-gray-50 before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-2 overflow-hidden border-2 rounded-full group "
+            className="flex justify-center gap-2 items-center shadow-lg text-md bg-white dark:bg-slate-800 font-bold text-slate-700 dark:text-white border-2 border-slate-100 dark:border-slate-700 hover:border-[#FACC15] hover:bg-[#FACC15] hover:text-[#1E293B] transition-all px-6 py-2.5 rounded-xl group"
             onClick={()=>settoggle(prev=>!prev)}
             >
-            {!toggle && <h1>Register</h1>}
-            {toggle && <h1>Records</h1>}
-            {!toggle&&<CircleUserRound className='text-orange-700 group-hover:text-white' size={24}/>}
-            {toggle&&<FileText className='text-orange-700 group-hover:text-white' size={23}/>}
-            
+            {!toggle && <span>Register Family</span>}
+            {toggle && <span>View Records</span>}
+            {!toggle && <CircleUserRound className='text-[#FACC15] group-hover:text-[#1E293B]' size={22}/>}
+            {toggle && <FileText className='text-[#FACC15] group-hover:text-[#1E293B]' size={21}/>}
             </button>
-
         </nav>
 
-        <div className={`success-toast bg-yellow-500 shadow-lg ${showSuccess?"show":""}`}>
-            <h1>{message}</h1>
-        </div>
+        <Toast 
+            isVisible={showSuccess}
+            message={toastConfig.message}
+            type={toastConfig.type}
+            onClose={() => setShowSuccess(false)}
+        />
 
-       {toggle&& <div className='h-full flex-1 mx-auto pt-10'>
-                <form className="mx-auto w-[400px] bg-white shadow-2xl flex flex-col gap-3 px-10 py-6 rounded-2xl" onSubmit={handleSubmit}>
-                          <p className="text-2xl text-gray-800 font-extrabold">Family Information</p>
+       {toggle && <div className='h-full flex-1 p-6'>
+                <form className="mx-auto w-full max-w-[450px] bg-white dark:bg-slate-800 shadow-2xl flex flex-col gap-5 p-8 rounded-3xl border border-slate-100 dark:border-slate-700" onSubmit={handleSubmit}>
+                          <p className="text-2xl text-slate-800 dark:text-white font-extrabold mb-2">Family Registration</p>
 
-                          <div className="relative w-full">
-                            <input 
-                              required 
-                              type="text"
-                              name='device_id'
-                              value={records.device_id}
-                              onChange={handleChange}
-                              className="peer mt-4 w-full h-[45px] border border-gray-200 rounded-lg outline-none bg-transparent px-3 focus:border-orange-500"
-                            />
-                            <label 
-                              className="absolute top-6 left-3 text-gray-400 transition-all duration-300 pointer-events-none 
-                              peer-focus:top-1 peer-focus:left-2 peer-focus:text-xs peer-focus:text-orange-500 peer-focus:bg-white peer-focus:px-1
-                              peer-valid:top-1 peer-valid:left-2 peer-valid:text-xs peer-valid:text-orange-500 peer-valid:bg-white peer-valid:px-1"
-                            >
-                              Device ID
-                            </label>
-                          </div>
+                          <div className="space-y-4">
+                            <div className="relative">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Device ID</label>
+                                <input 
+                                  required 
+                                  type="text"
+                                  name='device_id'
+                                  value={records.device_id}
+                                  onChange={handleChange}
+                                  placeholder="Enter device ID..."
+                                  className="w-full mt-1 p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-inset focus:ring-[#FACC15] dark:text-white transition-all"
+                                />
+                            </div>
 
+                            <div className="relative">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Family Name</label>
+                                <input 
+                                  required 
+                                  type="text"
+                                  name='family_name'
+                                  value={records.family_name}
+                                  onChange={handleChange}
+                                  placeholder="Enter family name..."
+                                  className="w-full mt-1 p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-inset focus:ring-[#FACC15] dark:text-white transition-all"
+                                />
+                            </div>
 
-                          <div className="relative w-full">
-                            <input 
-                              required 
-                              type="text"
-                              name='family_name'
-                              value={records.family_name}
-                              onChange={handleChange}
-                              className="peer mt-4 w-full h-[45px] border border-gray-200 rounded-lg outline-none bg-transparent px-3 focus:border-orange-500"
-                            />
-                            <label 
-                              className="absolute top-6 left-3 text-gray-400 transition-all duration-300 pointer-events-none 
-                              peer-focus:top-1 peer-focus:left-2 peer-focus:text-xs peer-focus:text-orange-500 peer-focus:bg-white peer-focus:px-1
-                              peer-valid:top-1 peer-valid:left-2 peer-valid:text-xs peer-valid:text-orange-500 peer-valid:bg-white peer-valid:px-1"
-                            >
-                              Family Name
-                            </label>
-                          </div>
-
-                          <div className="relative w-full">
-                            <input 
-                              required 
-                              type="number"
+                            <NumberInput 
+                              label="Member Count"
                               value={records.quantity}
-                              name='quantity'
                               onChange={handleChange}
-                              min={0}
+                              min={1}
                               max={30}
-                              className="peer mt-4 w-full h-[45px] border border-gray-200 rounded-lg outline-none bg-transparent px-3 focus:border-orange-500"
                             />
-                            <label 
-                              className="absolute top-6 left-3 text-gray-400 transition-all duration-300 pointer-events-none 
-                              peer-focus:top-1 peer-focus:left-2 peer-focus:text-xs peer-focus:text-orange-500 peer-focus:bg-white peer-focus:px-1
-                              peer-valid:top-1 peer-valid:left-2 peer-valid:text-xs peer-valid:text-orange-500 peer-valid:bg-white peer-valid:px-1"
-                            >
-                              Members
-                            </label>
-                          </div>
 
-
-                          <div className="relative w-full">
-                            <textarea 
-                              required
-                              rows="4"
-                              onChange={handleChange}
-                              name='location'
-                              value={records.location}
-                              className="peer mt-4 w-full border border-gray-200 rounded-lg outline-none bg-transparent px-3 py-2 focus:border-orange-500 resize-none"
-                            ></textarea>
-                            <label 
-                              className="absolute top-6 left-3 text-gray-400 transition-all duration-300 pointer-events-none 
-                              peer-focus:top-1 peer-focus:left-2 peer-focus:text-xs peer-focus:text-orange-500 peer-focus:bg-white peer-focus:px-1
-                              peer-valid:top-1 peer-valid:left-2 peer-valid:text-xs peer-valid:text-orange-500 peer-valid:bg-white peer-valid:px-1"
-                            >
-                              Location / Landmarks
-                            </label>
+                            <div className="relative">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Location / Landmarks</label>
+                                <textarea 
+                                  required
+                                  rows="3"
+                                  onChange={handleChange}
+                                  name='location'
+                                  value={records.location}
+                                  placeholder="Enter address or nearby landmarks..."
+                                  className="w-full mt-1 p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-inset focus:ring-[#FACC15] dark:text-white resize-none transition-all"
+                                ></textarea>
+                            </div>
                           </div>
 
                           <button 
-                            className="bg-yellow-500 text-white py-2 rounded-lg font-semibold border-2 border-transparent hover:border-yellow-500 hover:bg-white hover:text-yellow-500 active:bg-yellow-500 active:text-white transition-all duration-300"
+                            className="bg-[#FACC15] text-[#1E293B] py-3.5 rounded-xl font-bold text-lg hover:bg-yellow-500 shadow-lg shadow-yellow-500/20 active:scale-[0.98] transition-all mt-4"
                           >
-                            Submit
+                            Submit Application
                           </button>
                 </form>
 
         </div>}
 
 
-        {!toggle &&<div className='h-full flex-1 mx-auto pt-10 lg:min-w-full px-5'>
+        {!toggle && <div className='h-full flex-1 p-4 sm:p-6 lg:p-8 space-y-8'>
 
           {/* Dashboard Overview */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg flex items-center gap-5 border border-slate-100 dark:border-slate-700 transition-all hover:scale-[1.02]">
+              <div className='p-3.5 bg-slate-50 dark:bg-slate-900 text-[#FACC15] rounded-xl shadow-inner'>
+                <Home size={24}/>
+              </div>
+              <div>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Households</p>
+                <p className="text-3xl font-black text-slate-800 dark:text-white">{stats.totalHouseholds}</p>
+              </div>
+            </div>
 
-    <div className="bg-white px-7 py-5 rounded-2xl shadow-lg flex items-center gap-8">
-      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
-        <Home/>
-      </div>
-      <div className='flex-1'>
-        <p className="text-gray-500 text-sm">Total Households</p>
-        <div className='border'></div>
-        <p className="text-3xl font-bold text-gray-800">{stats.totalHouseholds}</p>
-      </div>
-    </div>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg flex items-center gap-5 border border-slate-100 dark:border-slate-700 transition-all hover:scale-[1.02]">
+              <div className='p-3.5 bg-slate-50 dark:bg-slate-900 text-[#FACC15] rounded-xl shadow-inner'>
+                  <User size={24}/>
+              </div>
+              <div>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Members</p>
+                <p className="text-3xl font-black text-slate-800 dark:text-white">{stats.totalMembers}</p>
+              </div>
+            </div>
 
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg flex items-center gap-5 border border-slate-100 dark:border-slate-700 transition-all hover:scale-[1.02]">
+              <div className='p-3.5 bg-slate-50 dark:bg-slate-900 text-[#FACC15] rounded-xl shadow-inner' >
+                <BarChart3 size={24}/>
+              </div>
+              <div>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Avg Members / Family</p>
+                  <p className="text-3xl font-black text-slate-800 dark:text-white">{stats.averageMembers}</p>
+              </div>
+            </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
-      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
-          <User/>
-      </div>
-      
-      <div className='flex-1'>
-        <p className="text-gray-500 text-sm">Total Members</p>
-        <div className='border'></div>
-        <p className="text-3xl font-bold text-gray-800">{stats.totalMembers}</p>
-      </div>
-      
-    </div>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg flex items-center gap-5 border border-slate-100 dark:border-slate-700 transition-all hover:scale-[1.02]">
+              <div className='p-3.5 bg-slate-50 dark:bg-slate-900 text-[#FACC15] rounded-xl shadow-inner'>
+                  <Star size={24}/>
+              </div>
+              <div className="min-w-0">
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Largest Family</p>
+                <p className="text-lg font-bold text-slate-800 dark:text-white truncate">
+                {stats.largestFamily ? `${stats.largestFamily.family_name} (${stats.largestFamily.quantity})` : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
-      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full' >
-        <BarChart3/>
-      </div>
-      <div className='flex-1'>
-          <p className="text-gray-500 text-sm">Avg Members / Family</p>
-          <div className='border'></div>
-          <p className="text-3xl font-bold text-gray-800">{stats.averageMembers}</p>
-      </div>
-      
-    </div>
+          <div className="flex flex-col md:flex-row items-center gap-4 justify-end mb-6 bg-white dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
+              <div className="relative w-full md:w-80">
+                <Search
+                  size={18}
+                  className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-all duration-200 ${searchTerm ? 'opacity-0' : 'opacity-100'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Search families..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm focus:ring-2 focus:ring-[#FACC15] outline-none dark:text-white transition-all"
+                />
+              </div>
 
-    <div className="bg-white p-5 rounded-2xl shadow-lg flex items-center gap-8">
-      <div className='p-4 bg-gray-200 border border-gray-400 rounded-full'>
-          <Star/>
-      </div>
-      <div className='flex-1'>
-        <p className="text-gray-500 text-sm">Largest Family</p>
-        <div className='border'></div>
-        <p className="text-lg font-bold text-gray-800">
-        {stats.largestFamily ? `${stats.largestFamily.family_name} (${stats.largestFamily.quantity})` : "—"}
-        </p>
-      </div>
-    </div>
+              <select
+                value={memberFilter}
+                onChange={(e) => setMemberFilter(e.target.value)}
+                className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm focus:ring-2 focus:ring-[#FACC15] outline-none dark:text-white transition-all cursor-pointer"
+              >
+                <option value="ALL">All Sizes</option>
+                <option value="SMALL">Small (1–3)</option>
+                <option value="MEDIUM">Medium (4–6)</option>
+                <option value="LARGE">Large (7–10)</option>
+                <option value="VERY_LARGE">Very Large (10+)</option>
+              </select>
 
-  </div>
-
-
-
-
-  <div className="flex flex-col md:flex-row  items-center pt-8 justify-end mb-2">
-  {/* Search */}
-  <div className='bg-white px-3 py-2 rounded-lg flex gap-5'>
- 
-  <div className="relative w-full md:w-72">
-
-    {/* Search Icon */}
-    {searchTerm === "" && (
-      <Search
-        size={18}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-all duration-200"
-      />
-    )}
-
-    <input
-      type="text"
-      placeholder="Search family name..."
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 
-                bg-gray-50 shadow-sm 
-                focus:ring-2 focus:ring-orange-400 
-                outline-none transition-all duration-300"
-    />
-  </div>
-
-  {/* Member Filter */}
-  <select
-    value={memberFilter}
-    onChange={(e) => setMemberFilter(e.target.value)}
-    className="px-4 py-2 rounded-xl border border-gray-300
-           bg-gray-50 shadow-sm
-           focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-           outline-none transition-all duration-300"
-  >
-    <option value="ALL">All Members</option>
-    <option value="SMALL">Small (1–3)</option>
-    <option value="MEDIUM">Medium (4–6)</option>
-    <option value="LARGE">Large (7–10)</option>
-    <option value="VERY_LARGE">Very Large (10+)</option>
-  </select>
-
-  {/* Sort By */}
-  <select
-    value={sortBy}
-    onChange={(e) => setSortBy(e.target.value)}
-    className="px-4 py-2 rounded-xl border border-gray-300
-           bg-gray-50 shadow-sm
-           focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-           outline-none transition-all duration-300"
-  >
-    <option value="NEWEST">Newest</option>
-    <option value="OLDEST">Oldest</option>
-    <option value="NAME_ASC">Name A–Z</option>
-    <option value="NAME_DESC">Name Z–A</option>
-    <option value="MEMBERS_ASC">Members Low–High</option>
-    <option value="MEMBERS_DESC">Members High–Low</option>
-    <option value="ID_ASC">Device ID Low–High</option>
-    <option value="ID_DESC">Device ID High–Low</option>
-  </select>
-  </div>
-  
-</div>
-
-
-{/* Cards grid area ni */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm focus:ring-2 focus:ring-[#FACC15] outline-none dark:text-white transition-all cursor-pointer"
+              >
+                <option value="NEWEST">Newest First</option>
+                <option value="OLDEST">Oldest First</option>
+                <option value="NAME_ASC">Name (A–Z)</option>
+                <option value="NAME_DESC">Name (Z–A)</option>
+                <option value="MEMBERS_DESC">Members (High-Low)</option>
+                <option value="MEMBERS_ASC">Members (Low-High)</option>
+              </select>
+          </div>
 
           {filteredData.length === 0 ? (
-    <div className="bg-white rounded-2xl shadow-md p-10 lg:w-1/2 m-auto mt-10 text-center text-gray-500">
-      No household records found.
-    </div>
-  ) : (
-    <div className="grid grid-cols-2 gap-x-12 gap-y-1 ">
-      {filteredData.map((item) => (
-        <div className='pt-12 pb-10 relative transition-all duration-300'  key={item._id}>
-        <Familyinfo
-          key={item._id}
-          {...item}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-        </div>
-      ))}
-    </div>
-  )}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md p-16 text-center border border-slate-100 dark:border-slate-700">
+              <UsersRound size={48} className="mx-auto text-slate-300 mb-4"/>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">No household records found matching your filters.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {filteredData.map((item) => (
+                <div className='relative transition-all duration-300' key={item._id}>
+                <Familyinfo
+                  {...item}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  showToast={showToast}
+                />
+                </div>
+              ))}
+            </div>
+          )}
         </div>}
         
     </div>

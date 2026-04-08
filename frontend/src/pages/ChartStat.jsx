@@ -4,7 +4,7 @@ import TrendChart from '../components/TrendChart'
 import LatencyChart from '../components/LatencyChart'
 const ChartStat = ({reports}) => {
   return (
-    <div className=' bg-[#F5F7FB] w-full flex justify-around '>
+    <div className='w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-1'>
         <StatusChart reports={reports} />
         <TrendChart reports={reports}/>
         <LatencyChart reports={reports} />
@@ -12,4 +12,4 @@ const ChartStat = ({reports}) => {
   )
 }
 
-export default ChartStat
+export default ChartStat  

@@ -188,6 +188,32 @@ const deleteuser = async(req,res)=>{
     }
 }
 
+const deleteEvent = async(req,res)=>{
+    try{
+        // Purpose: This endpoint is explicitly tailored to delete ONLY the Event document (Alert)
+        // It bypasses the `userInfo` collection entirely, ensuring family database records remain safely untouched.
+        const {id} = req.params;
+        const deleted = await Events.findByIdAndDelete(id);
+
+        if(!deleted){
+            return res.status(404).json({success:false, message:"Event not found"})
+        }
+
+        const io = req.app.get("io");
+        io.emit("alert_deleted", { _id: deleted._id });
+
+        res.status(200).json({
+            success:true,
+            message:"Successfully deleted event"
+        })
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
 
 module.exports ={
     register,
@@ -195,5 +221,6 @@ module.exports ={
     updateInfo,
     dataReceive,
     getdataReceive,
-    deleteuser
+    deleteuser,
+    deleteEvent
 }

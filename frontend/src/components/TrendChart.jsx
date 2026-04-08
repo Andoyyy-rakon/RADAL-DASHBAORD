@@ -31,37 +31,48 @@ export default function TrendChart({ reports }) {
   }));
 
   return (
-  <div className=" p-3 w-80 h-40  bg-white border border-[#E6EAF0] rounded-xl shadow-card">
-    <h2 className="font-semibold text-sm text-center mb-1">
+  <div className="p-4 w-full h-[200px] bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.1)] hover:scale-[1.01]">
+    <h2 className="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
       Alerts Per Hour
     </h2>
 
-    <ResponsiveContainer width="100%" height={110}>
+    <ResponsiveContainer width="100%" height={140}>
       <LineChart
         data={chartData}
-        margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
+        margin={{ top: 5, right: 20, left: -20, bottom: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} vertical={false} />
 
         <XAxis
           dataKey="time"
-          tick={{ fontSize: 8 }}
-          interval={2}   // show every 2 hours para hindi crowded
+          tick={{ fontSize: 9, fill: '#94a3b8' }}
+          axisLine={false}
+          tickLine={false}
+          interval={3}
         />
 
         <YAxis
-          tick={{ fontSize: 8 }}
-          width={25}
+          tick={{ fontSize: 9, fill: '#94a3b8' }}
+          axisLine={false}
+          tickLine={false}
+          width={40}
         />
 
-        <Tooltip />
+        <Tooltip 
+            contentStyle={{ 
+                borderRadius: '8px', 
+                border: 'none', 
+                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
+            }}
+        />
 
         <Line
           type="monotone"
           dataKey="alerts"
           stroke="#3b82f6"
-          strokeWidth={2}
-          dot={{ r: 3 }}
+          strokeWidth={3}
+          dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+          activeDot={{ r: 6, strokeWidth: 0 }}
         />
       </LineChart>
     </ResponsiveContainer>

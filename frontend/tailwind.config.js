@@ -13,13 +13,14 @@
 
 // tailwind.config.js
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        outfit: ['Outfit', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       keyframes: {
         float: {

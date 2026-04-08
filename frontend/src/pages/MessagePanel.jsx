@@ -1,13 +1,15 @@
 import React, { useEffect, useState,} from 'react'
-import {Mail, User,Expand,Box,ChevronDownIcon} from 'lucide-react';
+import {Mail, User, Expand, Box, ChevronDownIcon, Globe, X} from 'lucide-react';
 import Messages from '../components/Messages';
 import { UserContext } from '../usercontext/UserContext';
 import { useContext } from 'react';
 import { assets } from '../assets/asset';
 import io from "socket.io-client";
-import api from '../axios/AxiosApiFormat';
 import OfflineMapTest from './OfflineMap';
 import ChartStat from './ChartStat';
+import apiaxio from '../axios/AxiosApiFormat';
+import axiosPrivate from '../api/axiosPrivate';
+import ConfirmModal from '../components/ConfirmModal';
 
 
 
@@ -17,7 +19,17 @@ const MessagePanel = () => {
     const {reports,setreports} = useContext(UserContext)
     const [familyinfo,setfamilyinfo]=useState([])
     const [open, setOpen] = useState(false);
+    const [showMap, setShowMap] = useState(true);
+    const [selectedMap, setSelectedMap] = useState("Alijis");
     const familyRef = React.useRef([]);
+    // State to manage the response confirmation modal payload
+    const [confirmModalData, setConfirmModalData] = useState({ isOpen: false, report: null, responseCode: null, responseBool: false });
+
+    const statusLegend = [
+        { label: 'Safe', icon: assets.safe, color: 'text-[#4DBA87]', desc: 'User reports they are in a secure location.' },
+        { label: 'Aid', icon: assets.supplies, color: 'text-[#549EF2]', desc: 'User needs essential supplies such as food, water, or first aid.' },
+        { label: 'Alert', icon: assets.Alert, color: 'text-[#EF646A]', desc: 'Emergency! Immediate rescue required.' },
+    ];
 
 
     const [filters, setFilters] = useState({
@@ -33,7 +45,9 @@ const MessagePanel = () => {
   }));
   };
 
-  const filteredReports = reports.filter(report => filters[report.status_str]);
+  // Purpose: Only display reports where response_bool is false (It means they haven't been responded to yet).
+  // The filter object toggles (ALERT, AID, SAFE) are also respected.
+  const filteredReports = reports.filter(report => filters[report.status_str] && !report.response_bool);
 
 
 useEffect(() => {
@@ -45,7 +59,7 @@ useEffect(() => {
 useEffect(() => {
   const getAllInfo = async () => {
     try {
-      const res = await api.get('/users/getAllinfo');
+      const res = await axiosPrivate.get('/users/getAllinfo');
       setfamilyinfo(res.data.data);
     } catch (error) {
       console.log(error);
@@ -55,17 +69,48 @@ useEffect(() => {
 }, []);
 
 
+const handleResponse = (report, responseCode, responseBool) => {
+  // Purpose: Instead of immediately sending the DB update, intercept the click and open a confirmation modal.
+  setConfirmModalData({ isOpen: true, report, responseCode, responseBool });
+};
+
+const executeResponse = async () => {
+  const { report, responseCode, responseBool } = confirmModalData;
+  if (!report) return;
+
+  try {
+    // Purpose: Compile the updated event object by merging the existing event properties with the new response tags.
+    const updatedEventObj = {
+      ...report,
+      response_code: responseCode,
+      response_bool: responseBool
+    };
+    
+    // Purpose: Send the POST request to the backend. The backend uses `findOneAndUpdate` to upsert this payload.
+    // Setting `response_bool` to true acts as the flag that moves it to the Acknowledge page.
+    const res = await apiaxio.post('/users/events', updatedEventObj);
+    if(res.data.success) {
+      // Purpose: Optimistically update the local state array. Since `response_bool` is now true, `filteredReports` will automatically hide it.
+      setreports(prev => prev.map(r => r.handheld_id === report.handheld_id ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool } : r));
+    }
+  } catch (error) {
+    console.error("Error updating response", error);
+  } finally {
+    setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false });
+  }
+};
+
 const getFriendlyStatus = (status_str) => {
   switch (status_str.toLowerCase()) {
     case 'alert':
       return {
-        text: 'We are at risk! Need help ASAP',
+        text: 'Alert',
         image: assets.Alert 
       };
 
     case 'aid':
       return {
-        text: 'Need food and water',
+        text: 'Requesting Aid',
         image: assets.supplies
       };
 
@@ -89,7 +134,7 @@ useEffect(() => {
 
   const fetchAllert = async () => {
     try {
-      const res = await api.get('users/events');
+      const res = await apiaxio.get('/users/events');
       const merged = res.data.data.map(event => {
         const familydata = familyinfo.find(f => f.device_id == event.handheld_id);
         return {
@@ -147,7 +192,16 @@ useEffect(()=>{
 
     if (index !== -1) {
       const updated = [...prev];
-      updated[index] = mergedReport;
+      const oldReport = prev[index];
+
+      // Purpose: Only update the time if the physical device status actually changed.
+      const statusChanged = oldReport.status !== event.status;
+      
+      updated[index] = {
+        ...mergedReport,
+        time_label: statusChanged ? 'Status updated' : oldReport.time_label,
+        display_time: statusChanged ? event.updatedAt : oldReport.display_time
+      };
       return updated;
     }
 
@@ -163,6 +217,9 @@ useEffect(()=>{
   });
 });
 
+  socket.on("alert_deleted", (data) => {
+    setreports(prev => prev.filter(r => r._id !== data._id));
+  });
 
   return () => {
       socket.disconnect();
@@ -173,153 +230,193 @@ useEffect(()=>{
 
 
   return (
-    <div className='flex-1 min-h-screen pl-7 bg-[#F5F7FB]'>
-        <div className='pl-7 pr-10 pt-3'>
-            <div className=' flex gap-2  items-center'>
-                <Box size={28}/>
-                <h1 className='text-3xl  font-semibold text-[#1F2937]'>Dashboard</h1>
+    <div className='flex-1 min-h-screen bg-[#F5F7FB] dark:bg-slate-900 transition-colors duration-300'>
+        <div className='p-4 sm:p-6 lg:p-8'>
+            <div className='flex gap-2 items-center mb-1'>
+                <Box size={28} className="dark:text-[#FACC15]"/>
+                <h1 className='text-3xl font-semibold text-[#1F2937] dark:text-white'>Dashboard</h1>
             </div>
-                <div className="flex items-end gap-4 mt-5">
-                    <div className="bg-white p-4 w-[250px]  rounded-2xl shadow-lg relative ">
-                        <div className="flex justify-between  items-center mb-2">
-                            <span className="text-gray-600 font-medium ">New Messages</span>
-                            <Mail size={20} className='text-gray-600 mr-4 '/>
-                        </div>
-                            <div className='absolute bg-gray-400 h-[1px]  w-[80%] '></div>
-                            <p className="text-3xl font-bold text-gray-800 pt-1">{reports.length}</p>    
-                      </div>
-
-                      <ChartStat reports={reports} />
-
-                        
-                </div>
-
-                <div className='h-full w-full bg-gray-0 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-50 border border-gray-100
- max-w-full bg-white min-h-[500px] flex flex-row stify-items-center pt-5 px-2   gap-y-10   mt-8 shadow-2xl'>
-               
-    <div className='w-1/2 px-3'>
-      <div className="flex gap-4 mt-4 justify-between items-center w-[97%] px-3 border-b-2 mx-4 pb-2 border-gray-400 shadow-soft">
-{/* <div className='flex gap-5'>
-  <label className="flex items-center gap-2 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={filters.ALERT}
-      onChange={() => toggleFilter("ALERT")}
-      className='accent-gray-500'
-    />
-    <span className="text-[#EF646A] font-semibold">Alert</span>
-  </label>
-
-  <label className="flex items-center gap-2 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={filters.AID}
-      onChange={() => toggleFilter("AID")}
-      className='accent-gray-500'
-    />
-    <span className="text-[#549EF2] font-semibold">Aid</span>
-  </label>
-
-  <label className="flex items-center gap-2 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={filters.SAFE}
-      onChange={() => toggleFilter("SAFE")}
-      className='accent-gray-500'
-    />
-    <span className="text-[#4DBA87] font-semibold">Safe</span>
-  </label>
-</div> */}
-
-<div className="relative w-40 ">
-     
-      {/* <button
-        onClick={() => setOpen(!open)}
-        className="w-full px-3 py-1 bg-[#FACC15] rounded-lg text-left shadow-sm"
-      >
-        Filter ▼
-      </button> */}
-
-      <button
-        onClick={() => setOpen(!open)}
-        className={`w-full px-3 py-1 border-2    ${open?"bg-white  border-[#FACC15]":"bg-[#FACC15] border-transparent "} rounded-lg text-left shadow-sm flex justify-between
-        transition-all duration-300 ease-in-out items-center`}
-      >
-        <span className='font-medium '>Filter</span>
-        {/* Arrow */}
-        <ChevronDownIcon
-          className={`w-5 h-5 text-black transform transition-transform duration-300 ${
-            open ? "rotate-180" : "rotate-0"
-          }`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg p-2 z-10">
-          
-          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.ALERT}
-              onChange={() => toggleFilter("ALERT")}
-            />
-            <span className="text-[#EF646A] font-semibold">Alert</span>
-          </label>
-
-          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.AID}
-              onChange={() => toggleFilter("AID")}
-
-            />
-            <span className="text-[#549EF2] font-semibold">Aid</span>
-          </label>
-
-          <label className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.SAFE}
-              onChange={() => toggleFilter("SAFE")}
-            />
-            <span className="text-[#4DBA87] font-semibold">Safe</span>
-          </label>
-
-        </div>
-      )}
-    </div>
-
-<div>
- <Expand size={18} className='text-gray-600'/>
-
-</div>
-  
-</div>
-                  <div className='flex flex-col w-full pr-5'>
-                      {filteredReports.map(data=>(
-                        <div key={data._id}>
-                            <Messages {...data}
-                            onSelect={()=>setSelectedReport(data)}
-                            isActive={selectedReport?._id===data._id}
-                            />
-                        </div>
-                        
-                    ))}
-                  </div>
-                </div>
-                  
-                  <div className='w-1/2 h-[50%]  flex-1 px-3  py-3 shadow-floating rounded-lg '>
-                    <OfflineMapTest selectedReport={selectedReport} />
-                  </div>
-
-                </div>
                 
+                <div className="flex flex-col xl:flex-row items-start xl:items-end gap-6 mb-8">
+                    <div className="bg-white dark:bg-slate-800 p-5 min-w-[240px] rounded-2xl shadow-lg relative border border-slate-100 dark:border-slate-700 transition-all">
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-gray-500 dark:text-gray-400 font-medium">All Reports</span>
+                            <Mail size={20} className='text-gray-400 dark:text-[#FACC15]'/>
+                        </div>
+                        <div className='absolute bg-slate-100 dark:bg-slate-700 h-[1px] w-[80%] top-[50%] left-5'></div>
+                        <p className="text-4xl font-bold text-slate-800 dark:text-white mt-1">{reports.length}</p>    
+                    </div>
+                    <div className="flex-1 w-full overflow-hidden">
+                        <ChartStat reports={reports} />
+                    </div>
+                </div>
+
+                <div className='flex flex-col lg:flex-row gap-6 mt-8'>
+                    {/* Messages List Column */}
+                    <div className={`${showMap ? 'lg:max-w-[50%]' : 'lg:max-w-full'} flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl p-4 min-h-[450px] flex flex-col transition-all duration-500`}>
+                        <div className="flex justify-between items-center px-2 mb-4 border-b border-slate-100 dark:border-slate-700 pb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="relative w-40">
+                                    <button
+                                        onClick={() => setOpen(!open)}
+                                        className={`w-full px-5 py-2.5 border-2 ${open ? "bg-white dark:bg-slate-700 border-[#FACC15] ring-4 ring-yellow-500/10" : "bg-[#FACC15] border-transparent hover:bg-yellow-500"} rounded-xl text-left shadow-lg shadow-yellow-500/10 flex justify-between transition-all duration-300 ease-in-out items-center group`}
+                                    >
+                                        <span className={`font-bold ${open ? 'text-slate-800 dark:text-white' : 'text-slate-900'}`}>Filter Status</span>
+                                        <ChevronDownIcon
+                                            className={`w-5 h-5 ${open ? 'text-[#FACC15]' : 'text-slate-900'} transform transition-transform duration-500 ${open ? "rotate-180" : "rotate-0"}`}
+                                        />
+                                    </button>
+
+                                    {open && (
+                                        <div className="absolute mt-3 w-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-20 animate-in fade-in zoom-in-95 duration-200">
+                                            <label className="flex items-center gap-3 p-3.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl cursor-pointer transition-all group/item">
+                                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${filters.ALERT ? 'bg-[#EF646A] border-[#EF646A]' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.ALERT}
+                                                        onChange={() => toggleFilter("ALERT")}
+                                                        className="hidden"
+                                                    />
+                                                    {filters.ALERT && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                                </div>
+                                                <span className="text-[#EF646A] font-black text-sm uppercase tracking-wider">Alerts</span>
+                                            </label>
+                                            
+                                            <label className="flex items-center gap-3 p-3.5 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl cursor-pointer transition-all group/item">
+                                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${filters.AID ? 'bg-[#549EF2] border-[#549EF2]' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.AID}
+                                                        onChange={() => toggleFilter("AID")}
+                                                        className="hidden"
+                                                    />
+                                                    {filters.AID && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                                </div>
+                                                <span className="text-[#549EF2] font-black text-sm uppercase tracking-wider">Aids</span>
+                                            </label>
+
+                                            <label className="flex items-center gap-3 p-3.5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl cursor-pointer transition-all group/item">
+                                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${filters.SAFE ? 'bg-[#4DBA87] border-[#4DBA87]' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.SAFE}
+                                                        onChange={() => toggleFilter("SAFE")}
+                                                        className="hidden"
+                                                    />
+                                                    {filters.SAFE && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                                                </div>
+                                                <span className="text-[#4DBA87] font-black text-sm uppercase tracking-wider">Safe</span>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
+                                {!showMap && (
+                                    <button 
+                                        onClick={() => setShowMap(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-[#FACC15] dark:hover:bg-[#FACC15] text-slate-600 dark:text-slate-300 hover:text-slate-900 rounded-xl transition-all font-bold text-sm"
+                                    >
+                                        <Globe size={16} />
+                                        Show Map
+                                    </button>
+                                )}
+                            </div>
+                            <div className='font-black p-1  bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-lg shadow-sm tracking-wider border border-slate-200/50 dark:border-slate-600/50'>
+                             <div className="flex justify-between gap-2 items-center">
+                                  <div className="text-gray-500 dark:text-gray-400 font-medium text-xs">Unresponded Reports</div>
+                                  <div className="ml-auto bg-red-500 text-white text-[10px] item-center font-black px-2 py-0.5 rounded-full">
+                                      {reports.filter(r => !r.response_bool).length}
+                                    </div>
+                                </div> 
+                            </div>
+                            
+                        </div>
+
+                        {/* Scroll container */}
+                        <div className={`flex-1 overflow-y-auto pt-3 pb-2 px-2 space-y-4 ${showMap ? 'max-h-[550px]' : 'max-h-[800px]'} custom-scrollbar scroll-smooth`}>
+                            {filteredReports.map(data => (
+                                <div key={data._id}>
+                                    <Messages {...data}
+                                        onSelect={() => setSelectedReport(data)}
+                                        isActive={selectedReport?._id === data._id}
+                                        onRespond={(code, bool) => handleResponse(data, code, bool)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                
+                    {/* Map Column */}
+                    {showMap && (
+                        <div className='flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-100 dark:border-slate-700 rounded-2xl shadow-xl p-4 flex flex-col transition-all duration-500 animate-in slide-in-from-right-10'>
+                            <div className="flex justify-between items-center mb-4 px-2">
+                                <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-2">
+                                    <Globe size={18} className="text-[#FACC15]"/>
+                                     Map
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={selectedMap}
+                                        onChange={(e) => setSelectedMap(e.target.value)}
+                                        className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                    >
+                                        <option value="Alijis">Alijis, Bacolod</option>
+                                        <option value="Sipalay">Barangay 3, Sipalay</option>
+                                    </select>
+                                    <button 
+                                        onClick={() => setShowMap(false)}
+                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-red-500 transition-all"
+                                        title="Hide Map"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="h-[280px] rounded-xl overflow-hidden shadow-inner border border-slate-100 dark:border-slate-700">
+                                <OfflineMapTest selectedReport={selectedReport} selectedMap={selectedMap} />
+                            </div>
+
+                            {/* Map Legend */}
+                            <div className="mt-6 border-t border-slate-100 dark:border-slate-700 pt-6">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4 ml-1">
+                                    Status Indicators
+                                </h4>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {statusLegend.map((item) => (
+                                        <div key={item.label} className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-50 dark:border-slate-800 transition-all hover:border-[#FACC15]/30 group">
+                                            <div className="w-14 h-14 flex items-center justify-center">
+                                                  <img
+                                                    src={item.icon}
+                                                    alt={item.label}
+                                                    className="w-10 h-10 object-contain mx-auto"
+                                                  />
+                                                </div>
+                                            <div>
+                                                <p className={`text-sm font-black ${item.color}`}>{item.label}</p>
+                                                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 leading-tight">
+                                                    {item.desc}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <ConfirmModal 
+              isOpen={confirmModalData.isOpen}
+              onClose={() => setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false })}
+              onConfirm={executeResponse}
+              title="Send Response"
+              message="Are you sure you want to send this response out? This alert will be moved to the Acknowledged tab."
+              confirmText="Send Response"
+            />
         </div>
+    );
+};
 
-
-
-    </div>
-  )
-}
 
 export default MessagePanel
