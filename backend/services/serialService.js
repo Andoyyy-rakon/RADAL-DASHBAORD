@@ -63,6 +63,7 @@ function startSerial(io) {
           const rawData = cleaned.slice(1, -1).split(",");
 
           const [
+            tag,
             latency,
             type,
             typeStr,
@@ -107,7 +108,7 @@ function startSerial(io) {
           io.emit("event_update", event);
 
           console.log(
-            "Event updated from handheld:",
+           "Event updated from handheld:",
             eventData.handheld_id
           );
 
@@ -147,4 +148,29 @@ function startSerial(io) {
 
 }
 
-module.exports = startSerial;
+function sendResponsePacket(handheld_id, msg_id, response_code) {
+  console.log(handheld_id, msg_id, response_code);
+  if (!currentPort || !currentPort.isOpen) {
+    console.log("Serial not connected");
+    return false;
+  }
+
+  const packet_type = 2; // REQUIRED
+  const packet = `<RESP,${handheld_id},${msg_id},${packet_type},${response_code}>`;
+
+  currentPort.write(packet + "\n", (err) => {
+    if (err) {
+      console.log("Serial write error:", err.message);
+    } else {
+      console.log("Sent to ESP32:", packet);
+    }
+  });
+
+  return true;
+}
+
+
+module.exports ={
+  startSerial,
+  sendResponsePacket
+};

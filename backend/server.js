@@ -7,7 +7,8 @@ const cors = require("cors");
 const http = require("http");
 const {Server} =require("socket.io")
 const cookieParser = require("cookie-parser");
-const startSerial = require("./services/serialService")
+const {startSerial} = require("./services/serialService")
+const responseRoute = require("./router/responseRoute")
 
 const app = express();
 
@@ -41,7 +42,7 @@ startSerial(io);
 
 app.use("/users",familyInfoRouter);
 app.use("/auth", authRouter);
-
+app.use(responseRoute);
 
 
 server.listen(process.env.PORT,()=>{

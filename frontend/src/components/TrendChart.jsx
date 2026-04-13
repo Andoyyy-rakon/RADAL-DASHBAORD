@@ -39,7 +39,7 @@ export default function TrendChart({ reports }) {
     <ResponsiveContainer width="100%" height={140}>
       <LineChart
         data={chartData}
-        margin={{ top: 5, right: 20, left: -20, bottom: 0 }}
+        margin={{ top: 5, right: 20, left: -12, bottom: 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} vertical={false} />
 

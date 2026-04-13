@@ -74,31 +74,78 @@ const handleResponse = (report, responseCode, responseBool) => {
   setConfirmModalData({ isOpen: true, report, responseCode, responseBool });
 };
 
+// const executeResponse = async () => {
+//   const { report, responseCode, responseBool } = confirmModalData;
+//   if (!report) return;
+
+//   try {
+//     // Purpose: Compile the updated event object by merging the existing event properties with the new response tags.
+//     const updatedEventObj = {
+//       ...report,
+//       response_code: responseCode,
+//       response_bool: responseBool
+//     };
+    
+//     // Purpose: Send the POST request to the backend. The backend uses `findOneAndUpdate` to upsert this payload.
+//     // Setting `response_bool` to true acts as the flag that moves it to the Acknowledge page.
+//     const res = await apiaxio.post('/users/events', updatedEventObj);
+//     if(res.data.success) {
+//       // Purpose: Optimistically update the local state array. Since `response_bool` is now true, `filteredReports` will automatically hide it.
+//       setreports(prev => prev.map(r => r.handheld_id === report.handheld_id ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool } : r));
+//     }
+//   } catch (error) {
+//     console.error("Error updating response", error);
+//   } finally {
+//     setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false });
+//   }
+// };
+
+
 const executeResponse = async () => {
   const { report, responseCode, responseBool } = confirmModalData;
   if (!report) return;
 
   try {
-    // Purpose: Compile the updated event object by merging the existing event properties with the new response tags.
+
+    // 1️⃣ SEND TO ESP32
+    await apiaxio.post('/send-response', {
+      handheld_id: report.handheld_id,
+      msg_id: report.msg_id,
+      response_code: responseCode
+    });
+
+    // 2️⃣ UPDATE DATABASE
     const updatedEventObj = {
       ...report,
       response_code: responseCode,
       response_bool: responseBool
     };
-    
-    // Purpose: Send the POST request to the backend. The backend uses `findOneAndUpdate` to upsert this payload.
-    // Setting `response_bool` to true acts as the flag that moves it to the Acknowledge page.
+
     const res = await apiaxio.post('/users/events', updatedEventObj);
+
     if(res.data.success) {
-      // Purpose: Optimistically update the local state array. Since `response_bool` is now true, `filteredReports` will automatically hide it.
-      setreports(prev => prev.map(r => r.handheld_id === report.handheld_id ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool } : r));
+      setreports(prev =>
+        prev.map(r =>
+          r.handheld_id === report.handheld_id
+            ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool }
+            : r
+        )
+      );
     }
+
   } catch (error) {
-    console.error("Error updating response", error);
+    console.error("Error sending response", error);
   } finally {
-    setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false });
+    setConfirmModalData({
+      isOpen: false,
+      report: null,
+      responseCode: null,
+      responseBool: false
+    });
   }
 };
+
+
 
 const getFriendlyStatus = (status_str) => {
   switch (status_str.toLowerCase()) {
