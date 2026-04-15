@@ -107,14 +107,14 @@ const executeResponse = async () => {
 
   try {
 
-    // 1️⃣ SEND TO ESP32
+    
     await apiaxio.post('/send-response', {
       handheld_id: report.handheld_id,
       msg_id: report.msg_id,
       response_code: responseCode
     });
 
-    // 2️⃣ UPDATE DATABASE
+    
     const updatedEventObj = {
       ...report,
       response_code: responseCode,

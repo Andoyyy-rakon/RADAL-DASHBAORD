@@ -74,29 +74,69 @@ const handleResponse = (report, responseCode, responseBool) => {
   setConfirmModalData({ isOpen: true, report, responseCode, responseBool });
 };
 
+
 const executeResponse = async () => {
   const { report, responseCode, responseBool } = confirmModalData;
   if (!report) return;
 
   try {
-    // Purpose: Merge the new response code into the event object.
+
+    
+    await apiaxio.post('/send-response', {
+      handheld_id: report.handheld_id,
+      msg_id: report.msg_id,
+      response_code: responseCode
+    });
+
+    
     const updatedEventObj = {
       ...report,
       response_code: responseCode,
       response_bool: responseBool
     };
-    
-    // Purpose: Fire the POST to overwrite the previous response code on the existing record.
+
     const res = await apiaxio.post('/users/events', updatedEventObj);
+
     if(res.data.success) {
-      setreports(prev => prev.map(r => r.handheld_id === report.handheld_id ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool } : r));
+      setreports(prev =>
+        prev.map(r =>
+          r.handheld_id === report.handheld_id
+            ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool }
+            : r
+        )
+      );
     }
+
   } catch (error) {
     console.error("Error updating response", error);
   } finally {
     setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false });
   }
 };
+
+// const executeResponse = async () => {
+//   const { report, responseCode, responseBool } = confirmModalData;
+//   if (!report) return;
+
+//   try {
+//     // Purpose: Merge the new response code into the event object.
+//     const updatedEventObj = {
+//       ...report,
+//       response_code: responseCode,
+//       response_bool: responseBool
+//     };
+    
+//     // Purpose: Fire the POST to overwrite the previous response code on the existing record.
+//     const res = await apiaxio.post('/users/events', updatedEventObj);
+//     if(res.data.success) {
+//       setreports(prev => prev.map(r => r.handheld_id === report.handheld_id ? { ...r, ...res.data.event, response_code: responseCode, response_bool: responseBool } : r));
+//     }
+//   } catch (error) {
+//     console.error("Error updating response", error);
+//   } finally {
+//     setConfirmModalData({ isOpen: false, report: null, responseCode: null, responseBool: false });
+//   }
+// };
 
 const handleDelete = (id) => {
   // Purpose: Intercept the delete click to prevent accidental data loss using a modal confirmation.
