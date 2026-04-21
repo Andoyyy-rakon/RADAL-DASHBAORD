@@ -204,7 +204,9 @@ const Messages = ({
         >
           Acknowledged
         </button>
-        <button 
+        {response_bool && 
+        <>
+                <button 
           onClick={(e) => { e.stopPropagation(); onRespond && onRespond(2, true); }}
           className={`flex-1 min-w-[100px] text-[11px] font-bold py-2 px-2 rounded-lg transition-all ${response_code === 2 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/30'}`}
         >
@@ -222,6 +224,8 @@ const Messages = ({
         >
           Unable to Respond
         </button>
+        </>
+        }
       </div>
 
       <style>

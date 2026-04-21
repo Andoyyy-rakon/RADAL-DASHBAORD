@@ -120,7 +120,7 @@ const executeResponse = async () => {
       response_code: responseCode,
       response_bool: responseBool
     };
-
+     console.log('res',updatedEventObj)
     const res = await apiaxio.post('/users/events', updatedEventObj);
 
     if(res.data.success) {
@@ -207,7 +207,7 @@ useEffect(() => {
   fetchAllert();
 }, [familyinfo]);
 
-console.log(reports)
+// console.log(reports)
 
 
 useEffect(()=>{
@@ -218,6 +218,8 @@ useEffect(()=>{
   const fam = familyRef.current.find(
     f => f.device_id === event.handheld_id
   );
+
+  console.log(event)
 
   const mergedReport = {
     ...event,

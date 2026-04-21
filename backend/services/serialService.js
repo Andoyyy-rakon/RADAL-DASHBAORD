@@ -105,6 +105,8 @@ function startSerial(io) {
             }
           );
 
+          console.log(eventData)
+
           io.emit("event_update", event);
 
           console.log(
